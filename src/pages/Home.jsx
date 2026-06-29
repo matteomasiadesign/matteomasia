@@ -109,6 +109,14 @@ export default function Home() {
   const carouselRef = useRef(null)
   const lastScrollY = useRef(0)
 
+  // Se si arriva con un hash (es. /#contact dalla pagina dettaglio), scrolla lì
+  useEffect(() => {
+    if (window.location.hash) {
+      const id = window.location.hash.slice(1)
+      setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }), 300)
+    }
+  }, [])
+
   // Mostra al massimo i primi 4 progetti nel carosello della home
   const featured = projects.slice(0, 4)
 
@@ -371,14 +379,16 @@ export default function Home() {
               )
               return (
                 <FadeIn key={project.id} delay={index * 50} direction="scale" className="flex-none w-[85vw] md:w-[600px] snap-center md:snap-start group cursor-pointer active:scale-[0.98] transition-transform duration-300">
-                  {card}
-                  <div className="flex justify-between items-start px-1">
-                    <div>
-                      <h3 className="text-xl md:text-2xl font-semibold tracking-tight mb-1">{project.title}</h3>
-                      <p className={`${cTextMuted} text-sm md:text-base font-medium`}>{project.category}</p>
-                    </div>
-                    <div className={`w-10 h-10 rounded-full ${cCard} border ${cBorder} flex items-center justify-center ${isDark ? 'group-hover:bg-white group-hover:text-black' : 'group-hover:bg-black group-hover:text-white'} transition-colors duration-300`}>
-                      <ArrowUpRight size={18} />
+                  <div onClick={() => navigate(`/progetti/${project.slug || project.id}`)}>
+                    {card}
+                    <div className="flex justify-between items-start px-1">
+                      <div>
+                        <h3 className="text-xl md:text-2xl font-semibold tracking-tight mb-1">{project.title}</h3>
+                        <p className={`${cTextMuted} text-sm md:text-base font-medium`}>{project.category}</p>
+                      </div>
+                      <div className={`w-10 h-10 rounded-full ${cCard} border ${cBorder} flex items-center justify-center ${isDark ? 'group-hover:bg-white group-hover:text-black' : 'group-hover:bg-black group-hover:text-white'} transition-colors duration-300`}>
+                        <ArrowUpRight size={18} />
+                      </div>
                     </div>
                   </div>
                 </FadeIn>

@@ -4,10 +4,10 @@ import { supabase } from './supabase'
 // Progetti mostrati se Supabase non è ancora configurato o se la tabella è vuota.
 // Appena popoli la tabella "progetti" dall'admin, questi spariscono.
 export const FALLBACK_PROJECTS = [
-  { id: 'f1', title: 'Materia', category: 'Branding', img: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop', instagram_url: null, description: null },
-  { id: 'f2', title: 'Aura', category: 'Web Design', img: 'https://images.unsplash.com/photo-1604871000636-074fa5117945?q=80&w=2487&auto=format&fit=crop', instagram_url: null, description: null },
-  { id: 'f3', title: 'Kroma', category: 'Print', img: 'https://images.unsplash.com/photo-1557672172-298e090bd0f1?q=80&w=2487&auto=format&fit=crop', instagram_url: null, description: null },
-  { id: 'f4', title: 'Void', category: 'Art Direction', img: 'https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?q=80&w=2670&auto=format&fit=crop', instagram_url: null, description: null },
+  { id: 'f1', slug: 'materia', title: 'Materia', category: 'Branding', img: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop', instagram_url: null, description: 'Identità visiva costruita attorno alla matericità: carta, inchiostro, texture tattili.', media: [{ url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop', path: null, type: 'image' }] },
+  { id: 'f2', slug: 'aura', title: 'Aura', category: 'Web Design', img: 'https://images.unsplash.com/photo-1604871000636-074fa5117945?q=80&w=2487&auto=format&fit=crop', instagram_url: null, description: 'Sito vetrina con un sistema cromatico luminoso e transizioni fluide.', media: [{ url: 'https://images.unsplash.com/photo-1604871000636-074fa5117945?q=80&w=2487&auto=format&fit=crop', path: null, type: 'image' }] },
+  { id: 'f3', slug: 'kroma', title: 'Kroma', category: 'Print', img: 'https://images.unsplash.com/photo-1557672172-298e090bd0f1?q=80&w=2487&auto=format&fit=crop', instagram_url: null, description: 'Collana editoriale a tiratura limitata, gestione colore in quadricromia.', media: [{ url: 'https://images.unsplash.com/photo-1557672172-298e090bd0f1?q=80&w=2487&auto=format&fit=crop', path: null, type: 'image' }] },
+  { id: 'f4', slug: 'void', title: 'Void', category: 'Art Direction', img: 'https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?q=80&w=2670&auto=format&fit=crop', instagram_url: null, description: 'Direzione artistica per una campagna dal tono minimale e contrastato.', media: [{ url: 'https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?q=80&w=2670&auto=format&fit=crop', path: null, type: 'image' }] },
 ]
 
 export function useProjects() {

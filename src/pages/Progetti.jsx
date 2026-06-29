@@ -1,6 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, ArrowUpRight, Sun, Moon, Instagram } from 'lucide-react'
+import { ArrowLeft, ArrowUpRight, Sun, Moon } from 'lucide-react'
 import { useTheme } from '../lib/ThemeContext.jsx'
 import { getTokens } from '../lib/tokens.js'
 import { useProjects } from '../lib/useProjects.js'
@@ -59,7 +59,7 @@ export default function Progetti() {
               <article
                 key={project.id}
                 className="group cursor-pointer active:scale-[0.99] transition-transform duration-300"
-                onClick={() => project.instagram_url && window.open(project.instagram_url, '_blank', 'noopener')}
+                onClick={() => navigate(`/progetti/${project.slug || project.id}`)}
               >
                 <div className={`w-full aspect-[4/3] rounded-2xl md:rounded-[2rem] overflow-hidden ${cCard} mb-5 relative border ${cBorder} shadow-sm`}>
                   {project.img ? (
@@ -75,11 +75,6 @@ export default function Progetti() {
                   <div className="absolute top-4 left-4 md:top-6 md:left-6 px-4 py-2 rounded-full bg-black/40 backdrop-blur-md border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                     <span className="text-xs font-semibold tracking-widest uppercase text-white">{project.category}</span>
                   </div>
-                  {project.instagram_url && (
-                    <div className="absolute top-4 right-4 md:top-6 md:right-6 p-2.5 rounded-full bg-black/40 backdrop-blur-md border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                      <Instagram size={16} className="text-white" />
-                    </div>
-                  )}
                 </div>
 
                 <div className="flex justify-between items-start px-1">
@@ -90,11 +85,9 @@ export default function Progetti() {
                       <p className={`${cTextMuted} text-sm mt-2 leading-relaxed max-w-md`}>{project.description}</p>
                     )}
                   </div>
-                  {project.instagram_url && (
-                    <div className={`w-10 h-10 rounded-full ${cCard} border ${cBorder} flex items-center justify-center shrink-0 ${isDark ? 'group-hover:bg-white group-hover:text-black' : 'group-hover:bg-black group-hover:text-white'} transition-colors duration-300`}>
-                      <ArrowUpRight size={18} />
-                    </div>
-                  )}
+                  <div className={`w-10 h-10 rounded-full ${cCard} border ${cBorder} flex items-center justify-center shrink-0 ${isDark ? 'group-hover:bg-white group-hover:text-black' : 'group-hover:bg-black group-hover:text-white'} transition-colors duration-300`}>
+                    <ArrowUpRight size={18} />
+                  </div>
                 </div>
               </article>
             ))}
