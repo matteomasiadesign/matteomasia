@@ -4,6 +4,7 @@ import { ArrowUpRight, ArrowRight, Menu, X, CheckCircle2, Copy, Check, MessageCi
 import { useTheme } from '../lib/ThemeContext.jsx'
 import { getTokens } from '../lib/tokens.js'
 import { useProjects } from '../lib/useProjects.js'
+import { supabase, isSupabaseReady } from '../lib/supabase.js'
 
 // --- COMPONENTE ANIMAZIONE REVEAL ---
 const FadeIn = ({ children, delay = 0, direction = 'up', className = '' }) => {
@@ -102,6 +103,8 @@ export default function Home() {
   const [scrolled, setScrolled] = useState(false)
   const [showFloatingNav, setShowFloatingNav] = useState(true)
   const [formStatus, setFormStatus] = useState('idle')
+  const [formData, setFormData] = useState({ nome: '', email: '', oggetto: '', messaggio: '' })
+  const [formError, setFormError] = useState(null)
   const [copiedData, setCopiedData] = useState(null)
   const [activeProjectIndex, setActiveProjectIndex] = useState(0)
   const [openServiceIdx, setOpenServiceIdx] = useState(null)
@@ -156,13 +159,35 @@ export default function Home() {
     }, 400)
   }
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault()
+    setFormError(null)
+
+    // Modalità demo se Supabase non è configurato
+    if (!isSupabaseReady) {
+      setFormStatus('submitting')
+      setTimeout(() => {
+        setFormStatus('success')
+        setTimeout(() => setFormStatus('idle'), 3000)
+      }, 1000)
+      return
+    }
+
     setFormStatus('submitting')
-    setTimeout(() => {
-      setFormStatus('success')
-      setTimeout(() => setFormStatus('idle'), 3000)
-    }, 1500)
+    const { error } = await supabase.from('messaggi').insert({
+      nome: formData.nome.trim(),
+      email: formData.email.trim(),
+      oggetto: formData.oggetto.trim() || null,
+      messaggio: formData.messaggio.trim(),
+    })
+    if (error) {
+      setFormError('Invio non riuscito. Riprova, o scrivimi direttamente via email.')
+      setFormStatus('idle')
+      return
+    }
+    setFormData({ nome: '', email: '', oggetto: '', messaggio: '' })
+    setFormStatus('success')
+    setTimeout(() => setFormStatus('idle'), 4000)
   }
 
   const handleCopy = (text, type) => {
@@ -570,11 +595,17 @@ export default function Home() {
                   ) : (
                     <>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input type="text" placeholder="Nome" required disabled={formStatus === 'submitting'} className="apple-input" />
-                        <input type="email" placeholder="Email" required disabled={formStatus === 'submitting'} className="apple-input" />
+                        <input type="text" placeholder="Nome" required disabled={formStatus === 'submitting'} className="apple-input"
+                          value={formData.nome} onChange={(e) => setFormData({ ...formData, nome: e.target.value })} />
+                        <input type="email" placeholder="Email" required disabled={formStatus === 'submitting'} className="apple-input"
+                          value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
                       </div>
-                      <input type="text" placeholder="Oggetto" disabled={formStatus === 'submitting'} className="apple-input" />
-                      <textarea placeholder="Il tuo messaggio..." required disabled={formStatus === 'submitting'} rows={4} className="apple-input resize-none"></textarea>
+                      <input type="text" placeholder="Oggetto" disabled={formStatus === 'submitting'} className="apple-input"
+                        value={formData.oggetto} onChange={(e) => setFormData({ ...formData, oggetto: e.target.value })} />
+                      <textarea placeholder="Il tuo messaggio..." required disabled={formStatus === 'submitting'} rows={4} className="apple-input resize-none"
+                        value={formData.messaggio} onChange={(e) => setFormData({ ...formData, messaggio: e.target.value })}></textarea>
+
+                      {formError && <p className="text-sm text-red-500">{formError}</p>}
 
                       <button type="submit" disabled={formStatus === 'submitting'} className={`mt-2 w-full py-4 rounded-xl ${cBtnBgPrimary} font-semibold tracking-tight text-base hover:opacity-80 active:scale-[0.98] transition-all duration-300 disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2`}>
                         {formStatus === 'submitting' ? (
