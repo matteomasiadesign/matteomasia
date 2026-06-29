@@ -8,12 +8,16 @@ create table if not exists public.progetti (
   id            uuid primary key default gen_random_uuid(),
   title         text not null,
   category      text not null default 'Branding',
-  img           text,
+  slug          text,
+  img           text,                              -- copertina (una delle immagini in media)
+  media         jsonb not null default '[]'::jsonb, -- [{ url, path, type: 'image'|'video' }]
   instagram_url text,
   description   text,
   display_order int  not null default 0,
   created_at    timestamptz not null default now()
 );
+
+create index if not exists progetti_slug_idx on public.progetti(slug);
 
 -- 2) ABILITA ROW LEVEL SECURITY
 alter table public.progetti enable row level security;
