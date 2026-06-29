@@ -163,6 +163,13 @@ export default function Home() {
     e.preventDefault()
     setFormError(null)
 
+    // Controllo formato email: blocca "asd", "test@test", spazi, ecc.
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(formData.email.trim())
+    if (!emailOk) {
+      setFormError('Inserisci un indirizzo email valido (es. nome@dominio.it).')
+      return
+    }
+
     // Modalità demo se Supabase non è configurato
     if (!isSupabaseReady) {
       setFormStatus('submitting')
