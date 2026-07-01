@@ -353,13 +353,13 @@ export default function Home() {
           <div className="max-w-[980px] mx-auto w-full flex flex-col items-center text-center z-10 relative mt-10 md:mt-0">
             <FadeIn delay={100}>
               <h1 className="text-[14vw] md:text-[6rem] lg:text-[8rem] font-semibold tracking-tighter leading-[1.05] apple-gradient-text mb-3 md:mb-4">
-                Visual Designer.
+                Matteo Masia.
               </h1>
             </FadeIn>
 
             <FadeIn delay={300}>
               <p className={`text-xl md:text-3xl font-medium ${cTextMuted} max-w-2xl mx-auto tracking-tight leading-tight mb-10 md:mb-14 ${isDark ? 'drop-shadow-md' : ''}`}>
-                Progetto interfacce, sistemi visivi ed esperienze digitali che comunicano.
+                Visual Designer | Progetto interfacce, sistemi visivi ed esperienze digitali che comunicano.
               </p>
             </FadeIn>
 
