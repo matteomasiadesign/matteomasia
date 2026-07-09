@@ -635,7 +635,7 @@ export default function Home() {
         <footer className={`w-full py-8 px-6 ${cBgMain} border-t ${cBorder} relative z-10 pb-24 md:pb-8 transition-colors duration-700`}>
           <div className={`max-w-[980px] mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-medium ${cTextMuted}`}>
             <p>Matteo Masia © {new Date().getFullYear()}</p>
-            <p>Progettato per comunicare.</p>
+            <p>P.IVA 03062630904</p>
           </div>
         </footer>
       </div>
