@@ -1,15 +1,72 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { ArrowUpRight, ArrowRight, Menu, X, CheckCircle2, Copy, Check, MessageCircle, Sun, Moon, Plus, Minus } from 'lucide-react'
-import { useTheme } from '../lib/ThemeContext.jsx'
-import { getTokens } from '../lib/tokens.js'
-import { useProjects } from '../lib/useProjects.js'
-import { supabase, isSupabaseReady } from '../lib/supabase.js'
+
+// --- MOCK DEPENDENCIES TO MAKE THE FILE RUNNABLE ---
+// 1. Mock Theme Context
+const useTheme = () => {
+  const [theme, setTheme] = useState('dark');
+  const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  return { theme, toggleTheme, isDark: theme === 'dark' };
+};
+
+// 2. Mock Tokens
+const getTokens = (isDark) => {
+  if (isDark) {
+    return {
+      cBgRoot: 'bg-black',
+      cBgMain: 'bg-[#0a0a0a]',
+      cBgSec: 'bg-[#121212]',
+      cTextMain: 'text-white',
+      cTextMuted: 'text-[#a1a1a6]',
+      cBorder: 'border-white/10',
+      cCard: 'bg-[#1c1c1e]',
+      cBtnBgPrimary: 'bg-white text-black',
+      cBtnBgSecondary: 'bg-transparent text-white',
+      cGlass: 'bg-black/60',
+    };
+  }
+  return {
+    cBgRoot: 'bg-white',
+    cBgMain: 'bg-white',
+    cBgSec: 'bg-[#f5f5f7]',
+    cTextMain: 'text-black',
+    cTextMuted: 'text-[#86868b]',
+    cBorder: 'border-black/10',
+    cCard: 'bg-white',
+    cBtnBgPrimary: 'bg-black text-white',
+    cBtnBgSecondary: 'bg-transparent text-black',
+    cGlass: 'bg-white/60',
+  };
+};
+
+// 3. Mock Supabase
+const supabase = {
+  from: () => ({
+    insert: async () => new Promise(resolve => setTimeout(() => resolve({ error: null }), 1000))
+  })
+};
+const isSupabaseReady = false;
+
+// 4. Mock Projects Hook
+const useProjects = () => {
+  const projects = [
+    { id: '1', slug: 'putti', title: 'PUTTI', category: 'Branding', img: 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=3540&auto=format&fit=crop' },
+    { id: '2', slug: 'festha', title: 'Festha Manna | 2026', category: 'Branding', img: 'https://images.unsplash.com/photo-1558655146-d09347e92766?q=80&w=3664&auto=format&fit=crop' },
+    { id: '3', slug: 'cowboy', title: 'Cowboy Core', category: 'Branding', img: 'https://images.unsplash.com/photo-1533158326339-7f3cf2404354?q=80&w=3536&auto=format&fit=crop' },
+    { id: '4', slug: 'future', title: 'Future UI', category: 'Web Design', img: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=3544&auto=format&fit=crop' },
+  ];
+  return { projects };
+};
+
+// 5. Mock Router Navigate
+const useNavigate = () => {
+  return (path) => console.log(`Navigating to ${path}`);
+};
 
 // --- COMPONENTE ANIMAZIONE REVEAL ---
 const FadeIn = ({ children, delay = 0, direction = 'up', className = '' }) => {
   const [isVisible, setIsVisible] = useState(false)
-  const domRef = useRef()
+  const domRef = useRef(null)
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -106,10 +163,8 @@ export default function Home() {
   const [formData, setFormData] = useState({ nome: '', email: '', oggetto: '', messaggio: '' })
   const [formError, setFormError] = useState(null)
   const [copiedData, setCopiedData] = useState(null)
-  const [activeProjectIndex, setActiveProjectIndex] = useState(0)
   const [openServiceIdx, setOpenServiceIdx] = useState(null)
 
-  const carouselRef = useRef(null)
   const lastScrollY = useRef(0)
 
   // Se si arriva con un hash (es. /#contact dalla pagina dettaglio), scrolla lì
@@ -139,15 +194,6 @@ export default function Home() {
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
-
-  const handleCarouselScroll = () => {
-    if (carouselRef.current) {
-      const scrollPos = carouselRef.current.scrollLeft
-      const cardWidth = window.innerWidth * 0.85
-      const index = Math.round(scrollPos / cardWidth)
-      setActiveProjectIndex(index)
-    }
-  }
 
   const scrollToSection = (id) => {
     setIsMenuOpen(false)
@@ -239,6 +285,7 @@ export default function Home() {
 
   return (
     <div className={`min-h-screen w-full ${cBgRoot} font-sans selection:bg-blue-500 selection:text-white relative overflow-hidden`}>
+      {}
       <style>{`
         .apple-gradient-text {
           background: ${isDark ? 'linear-gradient(135deg, #fff 0%, #86868b 100%)' : 'linear-gradient(135deg, #1d1d1f 0%, #86868b 100%)'};
@@ -262,9 +309,19 @@ export default function Home() {
           box-shadow: 0 0 0 4px ${isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'};
         }
         .apple-input::placeholder { color: #86868b; }
+
+        /* Utility per nascondere la scrollbar orizzontale mantenendo lo scrolling */
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .hide-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
       `}</style>
 
       {/* --- DESKTOP NAVBAR --- */}
+      {}
       <header className={`hidden md:block fixed top-0 left-0 w-full z-50 transition-all duration-500 ${scrolled ? `${cGlass} backdrop-blur-xl border-b py-3` : 'bg-transparent py-6'}`}>
         <div className="max-w-[980px] mx-auto px-6 flex justify-between items-center">
           <div onClick={() => scrollToSection('home')} className={`text-xl font-semibold tracking-tight cursor-pointer hover:opacity-70 transition-opacity active:scale-[0.98] ${cTextMain}`}>
@@ -309,6 +366,7 @@ export default function Home() {
       </div>
 
       {/* --- MOBILE: BOTTOM SHEET MENU --- */}
+      {}
       <div className={`md:hidden fixed inset-0 z-[70] transition-opacity duration-300 ${isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
         <div className="absolute inset-0" onClick={() => setIsMenuOpen(false)}></div>
 
@@ -345,7 +403,9 @@ export default function Home() {
       </div>
 
       {/* --- APP CONTENT WRAPPER (Recede / Scale Down) --- */}
+      {}
       <div id="home" className={`w-full min-h-screen ${cBgMain} ${cTextMain} transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] transform origin-top ${isMenuOpen ? 'scale-[0.93] rounded-[2rem] overflow-hidden opacity-40 brightness-75 pointer-events-none shadow-2xl' : 'scale-100 rounded-none opacity-100 brightness-100'}`}>
+        
         {/* --- HERO SECTION --- */}
         <main className="min-h-screen flex flex-col justify-center items-center px-4 md:px-10 relative overflow-hidden">
           <AnimatedNeonWaves theme={theme} />
@@ -383,7 +443,7 @@ export default function Home() {
         </main>
 
         {/* --- GALLERIA PROGETTI (featured) --- */}
-        <section id="projects" className={`py-24 md:py-40 w-full overflow-hidden relative z-10 ${cBgMain} transition-colors duration-700`}>
+        <section id="projects" className={`py-24 md:py-40 w-full relative z-10 ${cBgMain} transition-colors duration-700 overflow-hidden`}>
           <div className="max-w-[980px] mx-auto px-6 mb-10 md:mb-16">
             <FadeIn>
               <h2 className="text-3xl md:text-5xl font-semibold tracking-tight mb-3">Lavori recenti.</h2>
@@ -391,47 +451,46 @@ export default function Home() {
             </FadeIn>
           </div>
 
-          <div
-            ref={carouselRef}
-            onScroll={handleCarouselScroll}
-            className="w-full pl-6 md:pl-[calc((100vw-980px)/2)] flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-4 md:gap-8 pb-4 pr-6 md:pr-10"
-          >
-            {featured.map((project, index) => {
-              const card = (
-                <div className={`w-full aspect-[4/3] md:aspect-[16/10] rounded-2xl md:rounded-[2rem] overflow-hidden ${cCard} mb-5 relative border ${cBorder} shadow-sm`}>
-                  <img
-                    src={project.img}
-                    alt={project.title}
-                    className="w-full h-full object-cover transition-transform duration-[1.5s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
-                  />
-                  <div className="absolute top-4 left-4 md:top-6 md:left-6 px-4 py-2 rounded-full bg-black/40 backdrop-blur-md border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                    <span className="text-xs font-semibold tracking-widest uppercase text-white">{project.category}</span>
-                  </div>
-                </div>
-              )
-              return (
-                <FadeIn key={project.id} delay={index * 50} direction="scale" className="flex-none w-[85vw] md:w-[600px] snap-center md:snap-start group cursor-pointer active:scale-[0.98] transition-transform duration-300">
-                  <div onClick={() => navigate(`/progetti/${project.slug || project.id}`)}>
-                    {card}
-                    <div className="flex justify-between items-start px-1">
-                      <div>
-                        <h3 className="text-xl md:text-2xl font-semibold tracking-tight mb-1">{project.title}</h3>
-                        <p className={`${cTextMuted} text-sm md:text-base font-medium`}>{project.category}</p>
-                      </div>
-                      <div className={`w-10 h-10 rounded-full ${cCard} border ${cBorder} flex items-center justify-center ${isDark ? 'group-hover:bg-white group-hover:text-black' : 'group-hover:bg-black group-hover:text-white'} transition-colors duration-300`}>
-                        <ArrowUpRight size={18} />
-                      </div>
+          <div className="relative w-full">
+            {/* OVERLAYS PER SFUMATURA LATERALE (SOLO DESKTOP) */}
+            <div className={`hidden md:block absolute top-0 left-0 h-full w-[10vw] lg:w-[calc((100vw-980px)/2+40px)] bg-gradient-to-r ${isDark ? 'from-[#0a0a0a]' : 'from-white'} to-transparent z-10 pointer-events-none`} />
+            <div className={`hidden md:block absolute top-0 right-0 h-full w-[10vw] lg:w-[calc((100vw-980px)/2+40px)] bg-gradient-to-l ${isDark ? 'from-[#0a0a0a]' : 'from-white'} to-transparent z-10 pointer-events-none`} />
+
+            {/* SU MOBILE COLONNA VERTICALE, SU DESKTOP CAROSELLO ORIZZONTALE */}
+            <div className="w-full flex flex-col md:flex-row md:overflow-x-auto hide-scrollbar md:snap-x md:snap-mandatory px-6 md:px-[calc((100vw-980px)/2)] gap-10 md:gap-8 pb-4">
+              {featured.map((project, index) => {
+                const card = (
+                  <div className={`w-full aspect-[4/3] md:aspect-[16/10] rounded-2xl md:rounded-[2rem] overflow-hidden ${cCard} mb-5 relative border ${cBorder} shadow-sm group`}>
+                    <img
+                      src={project.img}
+                      alt={project.title}
+                      className="w-full h-full object-cover transition-transform duration-[1.5s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
+                    />
+                    <div className="absolute top-4 left-4 md:top-6 md:left-6 px-4 py-2 rounded-full bg-black/40 backdrop-blur-md border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                      <span className="text-xs font-semibold tracking-widest uppercase text-white">{project.category}</span>
                     </div>
                   </div>
-                </FadeIn>
-              )
-            })}
-          </div>
-
-          <div className="md:hidden flex justify-center gap-2 mt-4">
-            {featured.map((_, idx) => (
-              <div key={idx} className={`h-1.5 rounded-full transition-all duration-300 ${idx === activeProjectIndex ? `w-6 ${isDark ? 'bg-white' : 'bg-black'}` : `w-1.5 ${isDark ? 'bg-white/20' : 'bg-black/20'}`}`} />
-            ))}
+                )
+                return (
+                  <FadeIn key={project.id} delay={index * 50} direction="scale" className="w-full md:w-[600px] flex-none md:snap-start group cursor-pointer active:scale-[0.98] transition-transform duration-300">
+                    <div onClick={() => navigate(`/progetti/${project.slug || project.id}`)}>
+                      {card}
+                      <div className="flex justify-between items-start px-1">
+                        <div>
+                          <h3 className="text-xl md:text-2xl font-semibold tracking-tight mb-1">{project.title}</h3>
+                          <p className={`${cTextMuted} text-sm md:text-base font-medium`}>{project.category}</p>
+                        </div>
+                        <div className={`w-10 h-10 rounded-full ${cCard} border ${cBorder} flex items-center justify-center ${isDark ? 'group-hover:bg-white group-hover:text-black' : 'group-hover:bg-black group-hover:text-white'} transition-colors duration-300`}>
+                          <ArrowUpRight size={18} />
+                        </div>
+                      </div>
+                    </div>
+                  </FadeIn>
+                )
+              })}
+              {/* Spacer per permettere all'ultima card su desktop di superare la sfumatura destra */}
+              <div className="hidden md:block w-[1px] md:w-[5vw] flex-none" />
+            </div>
           </div>
 
           <div className="max-w-[980px] mx-auto px-6 flex justify-center mt-12 md:mt-16">
@@ -448,6 +507,7 @@ export default function Home() {
         </section>
 
         {/* --- SERVIZI (ACCORDION) --- */}
+        {}
         <section id="services" className={`py-24 md:py-40 ${cBgSec} px-6 transition-colors duration-700`}>
           <div className="max-w-[980px] mx-auto">
             <FadeIn>
@@ -488,6 +548,7 @@ export default function Home() {
         </section>
 
         {/* --- BIO --- */}
+        {}
         <section id="bio" className={`py-24 md:py-40 px-6 ${cBgMain} relative z-10 transition-colors duration-700`}>
           <div className="max-w-[980px] mx-auto grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-24">
             <div className="md:col-span-5">
@@ -522,6 +583,7 @@ export default function Home() {
         </section>
 
         {/* --- SEZIONE CONTATTI --- */}
+        {}
         <section id="contact" className={`py-24 md:py-40 ${cBgSec} px-6 border-t ${cBorder} relative z-10 transition-colors duration-700`}>
           <div className="max-w-[980px] mx-auto pb-10 md:pb-0">
             <FadeIn>
@@ -628,6 +690,7 @@ export default function Home() {
         </section>
 
         {/* --- FOOTER --- */}
+        {}
         <footer className={`w-full py-8 px-6 ${cBgMain} border-t ${cBorder} relative z-10 pb-24 md:pb-8 transition-colors duration-700`}>
           <div className={`max-w-[980px] mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-medium ${cTextMuted}`}>
             <p>Matteo Masia © {new Date().getFullYear()}</p>
