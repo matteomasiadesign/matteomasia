@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, ArrowUpRight, Sun, Moon } from 'lucide-react'
+import { ArrowLeft, ArrowUpRight, Sun, Moon, ChevronDown } from 'lucide-react'
 import { useTheme } from '../lib/ThemeContext.jsx'
 import { getTokens } from '../lib/tokens.js'
 import { useProjects } from '../lib/useProjects.js'
@@ -10,8 +10,20 @@ export default function Progetti() {
   const navigate = useNavigate()
   const { projects, loading } = useProjects()
 
+  // Stato per tenere traccia degli ID dei progetti con la descrizione aperta
+  const [expanded, setExpanded] = useState({})
+
   const t = getTokens(isDark)
   const { cBgMain, cTextMain, cTextMuted, cBorder, cCard, cGlass } = t
+
+  // Funzione per alternare l'apertura della descrizione
+  const toggleDescription = (e, id) => {
+    e.stopPropagation() // Evita che il click inneschi la navigazione del progetto
+    setExpanded((prev) => ({
+      ...prev,
+      [id]: !prev[id]
+    }))
+  }
 
   return (
     <div className={`min-h-screen w-full ${cBgMain} ${cTextMain} font-sans selection:bg-blue-500 selection:text-white`}>
@@ -78,13 +90,39 @@ export default function Progetti() {
                 </div>
 
                 <div className="flex justify-between items-start px-1">
-                  <div className="pr-4">
+                  <div className="pr-4 flex-1">
                     <h3 className="text-xl md:text-2xl font-semibold tracking-tight mb-1">{project.title}</h3>
                     <p className={`${cTextMuted} text-sm md:text-base font-medium`}>{project.category}</p>
+                    
+                    {/* SEZIONE DESCRIZIONE COLLASSABILE */}
                     {project.description && (
-                      <p className={`${cTextMuted} text-sm mt-2 leading-relaxed max-w-md`}>{project.description}</p>
+                      <div className="mt-3">
+                        <button
+                          onClick={(e) => toggleDescription(e, project.id)}
+                          className={`flex items-center gap-1 text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-white' : 'text-black'} opacity-70 hover:opacity-100 transition-opacity`}
+                        >
+                          {expanded[project.id] ? 'Meno info' : 'Più info'}
+                          <ChevronDown 
+                            size={14} 
+                            className={`transform transition-transform duration-300 ${expanded[project.id] ? 'rotate-180' : ''}`} 
+                          />
+                        </button>
+                        
+                        <div 
+                          className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
+                            expanded[project.id] ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                          }`}
+                        >
+                          <div className="overflow-hidden">
+                            <p className={`${cTextMuted} text-sm mt-2 leading-relaxed max-w-md`}>
+                              {project.description}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                     )}
                   </div>
+                  
                   <div className={`w-10 h-10 rounded-full ${cCard} border ${cBorder} flex items-center justify-center shrink-0 ${isDark ? 'group-hover:bg-white group-hover:text-black' : 'group-hover:bg-black group-hover:text-white'} transition-colors duration-300`}>
                     <ArrowUpRight size={18} />
                   </div>
