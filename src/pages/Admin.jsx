@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, Sun, Moon, Plus, Pencil, Trash2, LogOut, X, Save, Upload, Loader2,
   AlertTriangle, Star, Film, GripVertical, Inbox, FolderOpen, Mail, MailOpen, Reply,
+  Layers, Image as ImageIcon,
 } from 'lucide-react'
 import {
   DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors,
@@ -24,6 +25,11 @@ const EMPTY_FORM = {
   description: '', display_order: 0, media: [], cover: '',
 }
 
+const SVC_EMPTY_FORM = {
+  id: null, title: '', description: '', img: '', img_path: null,
+  cta_label: '', cta_link: '', display_order: 0,
+}
+
 export default function Admin() {
   const { toggleTheme, isDark } = useTheme()
   const navigate = useNavigate()
@@ -39,6 +45,8 @@ export default function Admin() {
   const [listLoading, setListLoading] = useState(false)
   const [messages, setMessages] = useState([])
   const [msgLoading, setMsgLoading] = useState(false)
+  const [services, setServices] = useState([])
+  const [svcListLoading, setSvcListLoading] = useState(false)
 
   const [form, setForm] = useState(EMPTY_FORM)
   const [showForm, setShowForm] = useState(false)
@@ -48,6 +56,14 @@ export default function Admin() {
 
   const [pendingPaths, setPendingPaths] = useState([])
   const [removedPaths, setRemovedPaths] = useState([])
+
+  const [svcForm, setSvcForm] = useState(SVC_EMPTY_FORM)
+  const [showSvcForm, setShowSvcForm] = useState(false)
+  const [svcSaving, setSvcSaving] = useState(false)
+  const [svcUploading, setSvcUploading] = useState(false)
+  const [svcError, setSvcError] = useState(null)
+  const [svcPendingPath, setSvcPendingPath] = useState(null)
+  const [svcRemovedPath, setSvcRemovedPath] = useState(null)
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -83,9 +99,18 @@ export default function Admin() {
     setMsgLoading(false)
   }, [])
 
+  const loadServices = useCallback(async () => {
+    if (!isSupabaseReady) return
+    setSvcListLoading(true)
+    const { data, error } = await supabase.from('servizi').select('*')
+      .order('display_order', { ascending: true }).order('created_at', { ascending: false })
+    if (error) setSvcError(error.message); else setServices(data || [])
+    setSvcListLoading(false)
+  }, [])
+
   useEffect(() => {
-    if (session) { loadProjects(); loadMessages() }
-  }, [session, loadProjects, loadMessages])
+    if (session) { loadProjects(); loadMessages(); loadServices() }
+  }, [session, loadProjects, loadMessages, loadServices])
 
   const handleLogin = async (e) => {
     e.preventDefault(); setError(null); setLoggingIn(true)
@@ -217,6 +242,87 @@ export default function Admin() {
     }
   }
 
+  // --- SERVIZI ---
+  const openSvcNew = () => {
+    setSvcForm({ ...SVC_EMPTY_FORM, display_order: services.length })
+    setSvcPendingPath(null); setSvcRemovedPath(null); setSvcError(null); setShowSvcForm(true)
+  }
+  const openSvcEdit = (s) => {
+    setSvcForm({
+      id: s.id, title: s.title || '', description: s.description || '',
+      img: s.img || '', img_path: s.img_path || null,
+      cta_label: s.cta_label || '', cta_link: s.cta_link || '',
+      display_order: s.display_order ?? 0,
+    })
+    setSvcPendingPath(null); setSvcRemovedPath(null); setSvcError(null); setShowSvcForm(true)
+  }
+  const closeSvcForm = async () => {
+    if (svcPendingPath) await deleteMediaPaths([svcPendingPath])
+    setSvcPendingPath(null); setSvcRemovedPath(null); setSvcForm(SVC_EMPTY_FORM); setShowSvcForm(false)
+  }
+
+  const handleSvcImageUpload = async (files) => {
+    const file = files && files[0]
+    if (!file) return
+    setSvcError(null); setSvcUploading(true)
+    try {
+      const item = await uploadMediaFile(file)
+      // sostituisce l'eventuale immagine caricata in questa stessa sessione di modifica
+      if (svcPendingPath) await deleteMediaPaths([svcPendingPath])
+      if (svcForm.img_path) setSvcRemovedPath(svcForm.img_path)
+      setSvcPendingPath(item.path)
+      setSvcForm((f) => ({ ...f, img: item.url, img_path: item.path }))
+    } catch (err) { setSvcError(err.message) } finally { setSvcUploading(false) }
+  }
+  const removeSvcImage = () => {
+    if (svcPendingPath) { deleteMediaPaths([svcPendingPath]); setSvcPendingPath(null) }
+    else if (svcForm.img_path) { setSvcRemovedPath(svcForm.img_path) }
+    setSvcForm((f) => ({ ...f, img: '', img_path: null }))
+  }
+
+  const handleSvcSave = async (e) => {
+    e.preventDefault(); setSvcError(null)
+    if (!svcForm.title.trim()) { setSvcError('Il titolo è obbligatorio.'); return }
+    setSvcSaving(true)
+    try {
+      const payload = {
+        title: svcForm.title.trim(), description: svcForm.description.trim() || null,
+        img: svcForm.img || null, img_path: svcForm.img_path || null,
+        cta_label: svcForm.cta_label.trim() || null, cta_link: svcForm.cta_link.trim() || null,
+        display_order: Number(svcForm.display_order) || 0,
+      }
+      let res
+      if (svcForm.id) res = await supabase.from('servizi').update(payload).eq('id', svcForm.id)
+      else res = await supabase.from('servizi').insert(payload)
+      if (res.error) throw new Error(res.error.message)
+      if (svcRemovedPath) await deleteMediaPaths([svcRemovedPath])
+      setSvcPendingPath(null); setSvcRemovedPath(null); setSvcForm(SVC_EMPTY_FORM); setShowSvcForm(false); loadServices()
+    } catch (err) { setSvcError(err.message) } finally { setSvcSaving(false) }
+  }
+
+  const handleSvcDelete = async (s) => {
+    if (!window.confirm(`Eliminare "${s.title}"? L'azione è definitiva.`)) return
+    setSvcError(null)
+    if (s.img_path) await deleteMediaPaths([s.img_path])
+    const { error } = await supabase.from('servizi').delete().eq('id', s.id)
+    if (error) setSvcError(error.message); else loadServices()
+  }
+
+  const onServicesDragEnd = async (event) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    const oldIndex = services.findIndex((s) => s.id === active.id)
+    const newIndex = services.findIndex((s) => s.id === over.id)
+    const reordered = arrayMove(services, oldIndex, newIndex)
+    setServices(reordered)
+    for (let i = 0; i < reordered.length; i++) {
+      if (reordered[i].display_order !== i) {
+        const { error } = await supabase.from('servizi').update({ display_order: i }).eq('id', reordered[i].id)
+        if (error) { setSvcError('Riordino non salvato: ' + error.message); loadServices(); return }
+      }
+    }
+  }
+
   // --- MESSAGGI ---
   const toggleRead = async (m) => {
     const { error } = await supabase.from('messaggi').update({ letto: !m.letto }).eq('id', m.id)
@@ -266,6 +372,7 @@ export default function Admin() {
       {/* Switch vista */}
       <div className={`inline-flex p-1 rounded-full ${cCard} border ${cBorder} mb-8`}>
         <TabBtn active={view === 'progetti'} onClick={() => setView('progetti')} isDark={isDark}><FolderOpen size={16} /> Progetti</TabBtn>
+        <TabBtn active={view === 'servizi'} onClick={() => setView('servizi')} isDark={isDark}><Layers size={16} /> Servizi</TabBtn>
         <TabBtn active={view === 'messaggi'} onClick={() => setView('messaggi')} isDark={isDark}>
           <Inbox size={16} /> Messaggi
           {unreadCount > 0 && <span className="ml-1 px-1.5 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-bold">{unreadCount}</span>}
@@ -293,6 +400,33 @@ export default function Admin() {
                 <div className="flex flex-col gap-3">
                   {projects.map((p) => (
                     <SortableProject key={p.id} id={p.id} p={p} t={t} isDark={isDark} onEdit={() => openEdit(p)} onDelete={() => handleDelete(p)} />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          )}
+        </>
+      ) : view === 'servizi' ? (
+        <>
+          <div className="flex items-center justify-between mb-6">
+            <p className={`${cTextMuted} text-sm`}>{services.length} servizi · trascina <GripVertical size={13} className="inline" /> per riordinare</p>
+            <button onClick={openSvcNew} className={`flex items-center gap-2 px-5 py-3 rounded-full ${cBtnBgPrimary} font-semibold active:scale-95 transition-all`}>
+              <Plus size={18} /> Nuovo
+            </button>
+          </div>
+
+          {svcError && <p className="text-sm text-red-500 mb-4">{svcError}</p>}
+
+          {svcListLoading ? (
+            <div className="flex justify-center py-16"><Loader2 size={24} className={`animate-spin ${cTextMuted}`} /></div>
+          ) : services.length === 0 ? (
+            <div className={`text-center py-16 ${cTextMuted}`}><p className="font-medium">Nessun servizio.</p><p className="text-sm">Premi “Nuovo” per aggiungere le card mostrate in home.</p></div>
+          ) : (
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onServicesDragEnd}>
+              <SortableContext items={services.map((s) => s.id)} strategy={verticalListSortingStrategy}>
+                <div className="flex flex-col gap-3">
+                  {services.map((s) => (
+                    <SortableService key={s.id} id={s.id} s={s} t={t} isDark={isDark} onEdit={() => openSvcEdit(s)} onDelete={() => handleSvcDelete(s)} />
                   ))}
                 </div>
               </SortableContext>
@@ -427,6 +561,52 @@ export default function Admin() {
           </form>
         </div>
       )}
+
+      {/* --- FORM MODALE SERVIZIO --- */}
+      {showSvcForm && (
+        <div className="fixed inset-0 z-[80] flex items-end md:items-center justify-center p-0 md:p-6">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={closeSvcForm} />
+          <form onSubmit={handleSvcSave} className={`relative w-full md:max-w-lg ${cBgSec} rounded-t-3xl md:rounded-3xl p-6 md:p-8 border ${cBorder} max-h-[90vh] overflow-y-auto flex flex-col gap-4`}>
+            <div className="flex items-center justify-between">
+              <h2 className={`text-xl font-semibold ${cTextMain}`}>{svcForm.id ? 'Modifica servizio' : 'Nuovo servizio'}</h2>
+              <button type="button" onClick={closeSvcForm} className={`p-2 rounded-full ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'} ${cTextMain}`}><X size={20} /></button>
+            </div>
+
+            {/* ANTEPRIMA */}
+            <div>
+              <label className={`text-xs font-semibold uppercase tracking-wider ${cTextMuted} block mb-2`}>Anteprima card</label>
+              {svcForm.img ? (
+                <div className={`relative aspect-[16/10] rounded-xl overflow-hidden border ${cBorder} mb-3`}>
+                  <img src={svcForm.img} alt="" className="w-full h-full object-cover" />
+                  <button type="button" onClick={removeSvcImage} className="absolute top-2 right-2 p-1.5 rounded-md bg-black/60 text-white hover:bg-red-500 transition-colors">
+                    <X size={14} />
+                  </button>
+                </div>
+              ) : (
+                <div className={`flex items-center justify-center aspect-[16/10] rounded-xl border border-dashed ${cBorder} ${cTextMuted} mb-3`}>
+                  <ImageIcon size={28} />
+                </div>
+              )}
+              <label className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-dashed ${cBorder} ${cTextMuted} cursor-pointer ${isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'} transition-colors`}>
+                {svcUploading ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
+                {svcUploading ? 'Caricamento...' : svcForm.img ? 'Sostituisci immagine' : 'Carica immagine'}
+                <input type="file" accept="image/*" className="hidden" disabled={svcUploading} onChange={(e) => { handleSvcImageUpload(e.target.files); e.target.value = '' }} />
+              </label>
+            </div>
+
+            <Field label="Titolo *"><input type="text" value={svcForm.title} required onChange={(e) => setSvcForm({ ...svcForm, title: e.target.value })} className={inp} /></Field>
+            <Field label="Descrizione (opzionale)"><textarea rows={3} value={svcForm.description} onChange={(e) => setSvcForm({ ...svcForm, description: e.target.value })} className={`${inp} resize-none`} /></Field>
+            <Field label="Testo pulsante (opzionale)"><input type="text" placeholder="Vedi progetti" value={svcForm.cta_label} onChange={(e) => setSvcForm({ ...svcForm, cta_label: e.target.value })} className={inp} /></Field>
+            <Field label="Link pulsante (opzionale)"><input type="text" placeholder="/progetti oppure #contact oppure https://..." value={svcForm.cta_link} onChange={(e) => setSvcForm({ ...svcForm, cta_link: e.target.value })} className={inp} /></Field>
+
+            {svcError && <p className="text-sm text-red-500">{svcError}</p>}
+            <button type="submit" disabled={svcSaving || svcUploading} className={`mt-2 py-3 rounded-xl ${cBtnBgPrimary} font-semibold active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2`}>
+              {svcSaving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+              {svcForm.id ? 'Salva modifiche' : 'Crea servizio'}
+            </button>
+          </form>
+        </div>
+      )}
     </Shell>
   )
 }
@@ -448,6 +628,29 @@ function SortableProject({ id, p, t, isDark, onEdit, onDelete }) {
       <div className="flex-1 min-w-0">
         <h3 className={`font-semibold truncate ${cTextMain}`}>{p.title}</h3>
         <p className={`text-sm ${cTextMuted} truncate`}>{p.category} · {count} media</p>
+      </div>
+      <button onClick={onEdit} className={`p-2.5 rounded-full ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'} ${cTextMain} transition-colors active:scale-90`}><Pencil size={18} /></button>
+      <button onClick={onDelete} className="p-2.5 rounded-full hover:bg-red-500/10 text-red-500 transition-colors active:scale-90"><Trash2 size={18} /></button>
+    </div>
+  )
+}
+
+// --- Riga servizio ordinabile ---
+function SortableService({ id, s, t, isDark, onEdit, onDelete }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
+  const { cBgSec, cTextMain, cTextMuted, cBorder, cCard } = t
+  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
+  return (
+    <div ref={setNodeRef} style={style} className={`flex items-center gap-3 p-3 rounded-2xl ${cCard} border ${cBorder}`}>
+      <button type="button" {...attributes} {...listeners} className={`p-1 rounded-md cursor-grab active:cursor-grabbing touch-none ${cTextMuted}`} aria-label="Trascina per riordinare">
+        <GripVertical size={18} />
+      </button>
+      <div className={`w-14 h-14 rounded-xl overflow-hidden ${cBgSec} shrink-0 border ${cBorder} flex items-center justify-center`}>
+        {s.img ? <img src={s.img} alt={s.title} className="w-full h-full object-cover" /> : <ImageIcon size={18} className={cTextMuted} />}
+      </div>
+      <div className="flex-1 min-w-0">
+        <h3 className={`font-semibold truncate ${cTextMain}`}>{s.title}</h3>
+        <p className={`text-sm ${cTextMuted} truncate`}>{s.description || 'Nessuna descrizione'}</p>
       </div>
       <button onClick={onEdit} className={`p-2.5 rounded-full ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'} ${cTextMain} transition-colors active:scale-90`}><Pencil size={18} /></button>
       <button onClick={onDelete} className="p-2.5 rounded-full hover:bg-red-500/10 text-red-500 transition-colors active:scale-90"><Trash2 size={18} /></button>

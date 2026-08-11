@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowUpRight, ArrowRight, Menu, X, CheckCircle2, Copy, Check, MessageCircle, Sun, Moon, Plus, Minus } from 'lucide-react'
+import { ArrowUpRight, ArrowRight, Menu, X, CheckCircle2, Copy, Check, MessageCircle, Sun, Moon } from 'lucide-react'
 import { useTheme } from '../lib/ThemeContext.jsx'
 import { getTokens } from '../lib/tokens.js'
 import { useProjects } from '../lib/useProjects.js'
+import { useServices } from '../lib/useServices.js'
 import { supabase, isSupabaseReady } from '../lib/supabase.js'
 
 // --- COMPONENTE ANIMAZIONE REVEAL ---
@@ -98,6 +99,7 @@ export default function Home() {
   const { theme, toggleTheme, isDark } = useTheme()
   const navigate = useNavigate()
   const { projects } = useProjects()
+  const { services } = useServices()
 
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
@@ -107,7 +109,6 @@ export default function Home() {
   const [formError, setFormError] = useState(null)
   const [copiedData, setCopiedData] = useState(null)
   const [activeProjectIndex, setActiveProjectIndex] = useState(0)
-  const [openServiceIdx, setOpenServiceIdx] = useState(null)
 
   const carouselRef = useRef(null)
   const lastScrollY = useRef(0)
@@ -208,24 +209,13 @@ export default function Home() {
     setTimeout(() => setCopiedData(null), 2500)
   }
 
-  const services = [
-    {
-      title: 'Progettazione grafica per la stampa',
-      desc: 'Progettazione grafica per campagne pubblicitarie offline, brand collateral, impaginazione di cataloghi e riviste, banner ed espositori fieristici.',
-    },
-    {
-      title: 'Progettazione grafica digitale',
-      desc: 'Progettazione grafica raster e vettoriale per piattaforme digitali. Creazione di asset 2D e 3D per social media, campagne adv digitali e contenuti multimediali ottimizzati per la conversione.',
-    },
-    {
-      title: 'Branding & Identità Visiva',
-      desc: 'Branding marketing-oriented e creazione di identità visive complete: naming, logo design, palette cromatiche, mockup applicativi e strategia di posizionamento.',
-    },
-    {
-      title: 'Web Design & UI/UX',
-      desc: 'Web design per siti vetrina, e-commerce e gestionali. Progettazione di interfacce interattive (UI/UX) lead-oriented, studiate per massimizzare le conversioni e garantire una navigazione fluida.',
-    },
-  ]
+  // CTA delle card servizi: link interno (/...), ancora (#...) o URL esterno.
+  const handleServiceCta = (link) => {
+    if (!link) return
+    if (link.startsWith('#')) scrollToSection(link.slice(1))
+    else if (link.startsWith('/')) navigate(link)
+    else window.open(link, '_blank', 'noopener,noreferrer')
+  }
 
   const menuItems = [
     { name: 'Archivio', id: 'projects' },
@@ -451,42 +441,49 @@ export default function Home() {
           </div>
         </section>
 
-        {/* --- SERVIZI (ACCORDION) --- */}
+        {/* --- SERVIZI (CARD) --- */}
         <section id="services" className={`py-24 md:py-40 ${cBgSec} px-6 transition-colors duration-700`}>
           <div className="max-w-[980px] mx-auto">
             <FadeIn>
               <h2 className="text-3xl md:text-5xl font-semibold tracking-tight mb-12 md:mb-20">Competenze.</h2>
             </FadeIn>
 
-            <div className="flex flex-col">
-              {services.map((service, idx) => {
-                const isOpen = openServiceIdx === idx
-                return (
-                  <FadeIn key={idx} delay={idx * 100}>
-                    <div
-                      onClick={() => setOpenServiceIdx(isOpen ? null : idx)}
-                      className={`group flex flex-col py-6 md:py-10 border-b ${cBorder} ${isDark ? 'hover:border-white' : 'hover:border-black'} cursor-pointer transition-colors duration-300`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <h3 className={`text-xl md:text-3xl lg:text-4xl font-medium tracking-tight ${isOpen ? cTextMain : cTextMuted} ${isDark ? 'group-hover:text-white' : 'group-hover:text-black'} transition-colors duration-300 pr-4`}>
-                          {service.title}
-                        </h3>
-                        <div className={`p-2 rounded-full ${isOpen ? (isDark ? 'bg-white text-black' : 'bg-black text-white') : (isDark ? 'bg-white/5 text-white' : 'bg-black/5 text-black')} transition-colors duration-300 shrink-0`}>
-                          {isOpen ? <Minus size={20} /> : <Plus size={20} />}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+              {services.map((service, idx) => (
+                <FadeIn key={service.id} delay={idx * 100} direction="scale">
+                  <div className={`group flex flex-col h-full rounded-2xl md:rounded-[2rem] overflow-hidden ${cCard} border ${cBorder} shadow-sm`}>
+                    <div className={`aspect-[16/10] overflow-hidden ${cBgMain} relative`}>
+                      {service.img ? (
+                        <img
+                          src={service.img}
+                          alt={service.title}
+                          loading="lazy"
+                          className="w-full h-full object-cover transition-transform duration-[1.5s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
+                        />
+                      ) : (
+                        <div className={`w-full h-full flex items-center justify-center px-6 text-center ${cTextMuted}`}>
+                          <span className="text-sm font-medium">{service.title}</span>
                         </div>
-                      </div>
-
-                      <div className={`grid transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isOpen ? 'grid-rows-[1fr] opacity-100 mt-6' : 'grid-rows-[0fr] opacity-0 mt-0'}`}>
-                        <div className="overflow-hidden">
-                          <p className={`text-base md:text-xl ${cTextMuted} leading-relaxed max-w-3xl pr-4 md:pr-10`}>
-                            {service.desc}
-                          </p>
-                        </div>
-                      </div>
+                      )}
                     </div>
-                  </FadeIn>
-                )
-              })}
+                    <div className="flex flex-col flex-1 p-6 md:p-8">
+                      <h3 className="text-xl md:text-2xl font-semibold tracking-tight mb-2">{service.title}</h3>
+                      {service.description && (
+                        <p className={`${cTextMuted} text-sm md:text-base leading-relaxed mb-6 flex-1`}>{service.description}</p>
+                      )}
+                      {service.cta_link && (
+                        <button
+                          onClick={() => handleServiceCta(service.cta_link)}
+                          className={`group/cta mt-auto self-start flex items-center gap-2 text-sm font-semibold ${cTextMain} ${isDark ? 'hover:text-white' : 'hover:text-black'} active:scale-95 transition-all`}
+                        >
+                          {service.cta_label || 'Scopri di più'}
+                          <ArrowUpRight size={16} className="group-hover/cta:translate-x-0.5 group-hover/cta:-translate-y-0.5 transition-transform" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </FadeIn>
+              ))}
             </div>
           </div>
         </section>

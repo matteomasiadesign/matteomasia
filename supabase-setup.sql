@@ -76,12 +76,40 @@ create policy "Gestione admin messaggi"
   using (true)
   with check (true);
 
--- 6) STORAGE BUCKET PER LE IMMAGINI
+-- 6) TABELLA SERVIZI (card "Competenze" in home, gestite da admin)
+create table if not exists public.servizi (
+  id            uuid primary key default gen_random_uuid(),
+  title         text not null,
+  description   text,
+  img           text,     -- anteprima card
+  img_path      text,     -- path storage (per cleanup all'eliminazione/sostituzione)
+  cta_label     text,
+  cta_link      text,
+  display_order int  not null default 0,
+  created_at    timestamptz not null default now()
+);
+
+alter table public.servizi enable row level security;
+
+drop policy if exists "Lettura pubblica servizi" on public.servizi;
+create policy "Lettura pubblica servizi"
+  on public.servizi for select
+  to anon, authenticated
+  using (true);
+
+drop policy if exists "Scrittura admin servizi" on public.servizi;
+create policy "Scrittura admin servizi"
+  on public.servizi for all
+  to authenticated
+  using (true)
+  with check (true);
+
+-- 7) STORAGE BUCKET PER LE IMMAGINI
 insert into storage.buckets (id, name, public)
 values ('progetti', 'progetti', true)
 on conflict (id) do nothing;
 
--- 6) POLICY STORAGE
+-- 8) POLICY STORAGE
 --    Lettura pubblica delle immagini.
 drop policy if exists "Immagini pubbliche" on storage.objects;
 create policy "Immagini pubbliche"
