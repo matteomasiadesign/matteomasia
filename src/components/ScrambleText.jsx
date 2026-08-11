@@ -1,46 +1,102 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 const SCRAMBLE_CHARS = '!<>-_\\/[]{}—=+*^?#________'
+const randomChar = () => SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)]
+
+// Costruisce la timeline: ogni carattere "reale" occupa `letterDurationMs`,
+// gli spazi vengono attraversati all'istante cosi' non rallentano la sequenza.
+const buildSchedule = (text, letterDurationMs) => {
+  let cursor = 0
+  return text.split('').map((char) => {
+    const start = cursor
+    const duration = char === ' ' ? 0 : letterDurationMs
+    cursor += duration
+    return { char, start, duration }
+  })
+}
 
 // Adattamento React del componente "Scramble / Decode Text" (The Site).
-// Preserva gli spazi cosi' i testi multi-parola non collassano in un blob di simboli.
-export const ScrambleText = ({ text, as: Tag = 'span', className = '', scrambleOnMount = true, ...props }) => {
-  const [display, setDisplay] = useState(text)
+// Al trigger, rivela il testo lettera per lettera da sinistra a destra:
+// ogni carattere decodifica per `letterDurationMs` prima di bloccarsi su
+// quello reale e far partire il successivo. A rivelazione conclusa, un
+// hover ridecodifica l'intera parola rapidamente (come l'effetto originale).
+export const ScrambleText = ({
+  text,
+  as: Tag = 'span',
+  className = '',
+  trigger = true,
+  letterDurationMs = 1000,
+  hoverScramble = true,
+  ...props
+}) => {
+  const [chars, setChars] = useState(() => text.split('').map((char) => ({ display: char, revealed: false })))
+  const [introDone, setIntroDone] = useState(false)
   const frameRef = useRef(null)
+  const hasIntroStarted = useRef(false)
 
-  const scramble = useCallback(() => {
-    let iteration = 0
+  const runIntro = useCallback(() => {
     cancelAnimationFrame(frameRef.current)
+    const schedule = buildSchedule(text, letterDurationMs)
+    const totalDuration = schedule.reduce((max, s) => Math.max(max, s.start + s.duration), 0)
+    const startTime = performance.now()
 
-    const run = () => {
-      setDisplay(
-        text
-          .split('')
-          .map((char, i) => {
-            if (char === ' ') return ' '
-            if (i < iteration) return text[i]
-            return SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)]
-          })
-          .join('')
+    const tick = (now) => {
+      const elapsed = now - startTime
+      setChars(
+        schedule.map(({ char, start, duration }) => {
+          if (char === ' ') return { display: ' ', revealed: true }
+          if (elapsed >= start + duration) return { display: char, revealed: true }
+          if (elapsed >= start) return { display: randomChar(), revealed: true }
+          return { display: char, revealed: false }
+        })
       )
-
-      if (iteration < text.length) {
-        iteration += 1 / 3
-        frameRef.current = requestAnimationFrame(run)
+      if (elapsed < totalDuration) {
+        frameRef.current = requestAnimationFrame(tick)
+      } else {
+        setIntroDone(true)
       }
     }
 
-    run()
-  }, [text])
+    frameRef.current = requestAnimationFrame(tick)
+  }, [text, letterDurationMs])
+
+  const runQuickScramble = useCallback(() => {
+    if (!introDone) return
+    cancelAnimationFrame(frameRef.current)
+    let iteration = 0
+    const letters = text.split('')
+
+    const tick = () => {
+      setChars(
+        letters.map((char, i) => ({
+          display: char === ' ' ? ' ' : i < iteration ? char : randomChar(),
+          revealed: true,
+        }))
+      )
+      if (iteration < letters.length) {
+        iteration += 1 / 3
+        frameRef.current = requestAnimationFrame(tick)
+      }
+    }
+
+    tick()
+  }, [text, introDone])
 
   useEffect(() => {
-    if (scrambleOnMount) scramble()
+    if (trigger && !hasIntroStarted.current) {
+      hasIntroStarted.current = true
+      runIntro()
+    }
     return () => cancelAnimationFrame(frameRef.current)
-  }, [scramble, scrambleOnMount])
+  }, [trigger, runIntro])
 
   return (
-    <Tag className={className} onMouseEnter={scramble} {...props}>
-      {display}
+    <Tag className={className} onMouseEnter={hoverScramble ? runQuickScramble : undefined} {...props}>
+      {chars.map((c, i) => (
+        <span key={i} style={{ opacity: c.revealed ? 1 : 0 }}>
+          {c.display}
+        </span>
+      ))}
     </Tag>
   )
 }
