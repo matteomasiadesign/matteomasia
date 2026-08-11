@@ -6,6 +6,7 @@ import { getTokens } from '../lib/tokens.js'
 import { useProjects } from '../lib/useProjects.js'
 import { useServices } from '../lib/useServices.js'
 import { supabase, isSupabaseReady } from '../lib/supabase.js'
+import { ScrambleText } from '../components/ScrambleText.jsx'
 
 // --- COMPONENTE ANIMAZIONE REVEAL ---
 const FadeIn = ({ children, delay = 0, direction = 'up', className = '' }) => {
@@ -381,7 +382,7 @@ export default function Home() {
           <div className="max-w-[980px] mx-auto w-full flex flex-col items-center text-center z-10 relative mt-10 md:mt-0">
             <FadeIn delay={100}>
               <h1 className="text-[14vw] md:text-[6rem] lg:text-[8rem] font-semibold tracking-tighter leading-[1.05] apple-gradient-text mb-3 md:mb-4">
-                Matteo Masia.
+                <ScrambleText text="Matteo Masia." />
               </h1>
             </FadeIn>
 
