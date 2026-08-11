@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowUpRight, ArrowRight, Menu, X, CheckCircle2, Copy, Check, MessageCircle, Sun, Moon } from 'lucide-react'
+import { ArrowUpRight, ArrowRight, ArrowLeft, Menu, X, CheckCircle2, Copy, Check, MessageCircle, Sun, Moon } from 'lucide-react'
 import { useTheme } from '../lib/ThemeContext.jsx'
 import { getTokens } from '../lib/tokens.js'
 import { useProjects } from '../lib/useProjects.js'
@@ -109,6 +109,8 @@ export default function Home() {
   const [formError, setFormError] = useState(null)
   const [copiedData, setCopiedData] = useState(null)
   const [activeProjectIndex, setActiveProjectIndex] = useState(0)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
 
   const carouselRef = useRef(null)
   const lastScrollY = useRef(0)
@@ -123,6 +125,27 @@ export default function Home() {
 
   // Mostra al massimo i primi 4 progetti nel carosello della home
   const featured = projects.slice(0, 4)
+
+  // Aggiorna lo stato delle frecce del carosello desktop in base allo scroll corrente
+  const updateCarouselArrows = () => {
+    const el = carouselRef.current
+    if (!el) return
+    setCanScrollLeft(el.scrollLeft > 4)
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4)
+  }
+
+  useEffect(() => {
+    updateCarouselArrows()
+    window.addEventListener('resize', updateCarouselArrows)
+    return () => window.removeEventListener('resize', updateCarouselArrows)
+  }, [featured.length])
+
+  const scrollCarousel = (direction) => {
+    const el = carouselRef.current
+    if (!el) return
+    const amount = Math.min(el.clientWidth * 0.9, 632)
+    el.scrollBy({ left: direction * amount, behavior: 'smooth' })
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -148,6 +171,7 @@ export default function Home() {
       const index = Math.round(scrollPos / cardWidth)
       setActiveProjectIndex(index)
     }
+    updateCarouselArrows()
   }
 
   const scrollToSection = (id) => {
@@ -389,6 +413,24 @@ export default function Home() {
             
             {/* Ombra Destra (Solo Desktop) */}
             <div className={`hidden md:block absolute top-0 right-0 bottom-0 w-[10vw] z-20 pointer-events-none bg-gradient-to-l ${isDark ? 'from-black via-black/80' : 'from-[#f5f5f7] via-[#f5f5f7]/80'} to-transparent`}></div>
+
+            {/* Frecce di navigazione (Solo Desktop) */}
+            <button
+              type="button"
+              onClick={() => scrollCarousel(-1)}
+              aria-label="Progetto precedente"
+              className={`hidden md:flex absolute left-4 lg:left-8 top-[42%] -translate-y-1/2 z-30 w-12 h-12 rounded-full items-center justify-center border ${cBorder} ${cCard} shadow-lg transition-all duration-300 ${canScrollLeft ? `opacity-100 hover:scale-110 active:scale-95 ${isDark ? 'hover:bg-white hover:text-black' : 'hover:bg-black hover:text-white'}` : 'opacity-0 pointer-events-none'}`}
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollCarousel(1)}
+              aria-label="Progetto successivo"
+              className={`hidden md:flex absolute right-4 lg:right-8 top-[42%] -translate-y-1/2 z-30 w-12 h-12 rounded-full items-center justify-center border ${cBorder} ${cCard} shadow-lg transition-all duration-300 ${canScrollRight ? `opacity-100 hover:scale-110 active:scale-95 ${isDark ? 'hover:bg-white hover:text-black' : 'hover:bg-black hover:text-white'}` : 'opacity-0 pointer-events-none'}`}
+            >
+              <ArrowRight size={20} />
+            </button>
 
             <div
               ref={carouselRef}
