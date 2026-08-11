@@ -542,34 +542,69 @@ export default function Home() {
 
         {/* --- BIO --- */}
         <section id="bio" className={`py-24 md:py-40 px-6 ${cBgMain} relative z-10 transition-colors duration-700`}>
-          <div className="max-w-[980px] mx-auto grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-24">
-            <div className="md:col-span-5">
+          <div className="max-w-[980px] mx-auto grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-24 md:items-start">
+            <div className="md:col-span-5 md:sticky md:top-28">
               <FadeIn>
-                <h2 className="text-4xl md:text-6xl font-semibold tracking-tighter leading-tight mb-2">
-                  Visione.<br /><span className={cTextMuted}>Percorso.</span>
+                <span className={`block text-xs font-semibold uppercase tracking-widest ${cTextMuted} mb-3`}>Chi sono</span>
+                <h2 className="text-4xl md:text-6xl font-semibold tracking-tighter leading-tight mb-4">
+                  Il mio<br /><span className={cTextMuted}>percorso.</span>
                 </h2>
+                <p className={`text-base md:text-lg ${cTextMuted} max-w-xs`}>Dalla fotografia alla produzione audio, fino al design digitale.</p>
               </FadeIn>
             </div>
 
-            <div className={`md:col-span-7 flex flex-col gap-6 md:gap-8 text-lg md:text-2xl font-medium tracking-tight ${cTextMuted} leading-snug`}>
-              <FadeIn delay={100}>
-                <p>Visual e Web Designer, classe '97, nato in <strong className={cTextMain}>Sardegna</strong>. Inizio il mio percorso nelle arti visive a 14 anni con la fotografia.</p>
-              </FadeIn>
-              <FadeIn delay={200}>
-                <p>Negli anni espando il mio linguaggio collaborando con altri artisti, sviluppando competenze in videomaking, editing e grafica vettoriale.</p>
-              </FadeIn>
-              <FadeIn delay={300}>
-                <p>Per cinque anni mi dedico alla produzione audio, realizzando oltre 100 strumentali ed entrando nella sezione producer di <strong className={cTextMain}>HONIRO</strong>.</p>
-              </FadeIn>
-              <FadeIn delay={400}>
-                <p>Nel 2023 mi laureo in economia e management, per poi tornare alle arti visive con un approccio più strutturato: modellazione, compositing 3D e web design.</p>
-              </FadeIn>
-              <FadeIn delay={500}>
-                <div className={`mt-6 md:mt-8 p-8 md:p-12 rounded-[2rem] ${cCard} border ${cBorder} relative overflow-hidden shadow-sm`}>
-                  <p className={`text-xl md:text-3xl ${cTextMain} font-semibold mb-4 md:mb-6 leading-tight tracking-tight`}>Oggi unisco tutto questo in un sistema compatto: visione, tecnica e direzione.</p>
-                  <p className={`text-base md:text-lg ${cTextMuted}`}>Un mix diretto, progettato per comunicare. Posso aiutarti a strutturare una comunicazione efficace e multi-piattaforma per il tuo business, progetto o evento.</p>
-                </div>
-              </FadeIn>
+            <div className="md:col-span-7 relative">
+              {/* Linea verticale del percorso */}
+              <div className={`absolute left-[7px] top-2 bottom-2 w-px ${isDark ? 'bg-white/10' : 'bg-black/10'}`} />
+
+              <div className="flex flex-col gap-8 md:gap-10">
+                <FadeIn delay={100}>
+                  <div className="relative pl-8">
+                    <span className={`absolute left-0 top-1.5 w-[15px] h-[15px] rounded-full border-2 ${cBorder} ${cBgMain}`} />
+                    <span className={`block text-xs font-semibold uppercase tracking-widest ${cTextMuted} mb-2`}>A 14 anni</span>
+                    <p className={`text-lg md:text-2xl font-medium tracking-tight ${cTextMuted} leading-snug`}>
+                      Visual e Web Designer, classe '97, nato in <strong className={cTextMain}>Sardegna</strong>. Inizio il mio percorso nelle arti visive con la fotografia.
+                    </p>
+                  </div>
+                </FadeIn>
+                <FadeIn delay={200}>
+                  <div className="relative pl-8">
+                    <span className={`absolute left-0 top-1.5 w-[15px] h-[15px] rounded-full border-2 ${cBorder} ${cBgMain}`} />
+                    <span className={`block text-xs font-semibold uppercase tracking-widest ${cTextMuted} mb-2`}>Negli anni</span>
+                    <p className={`text-lg md:text-2xl font-medium tracking-tight ${cTextMuted} leading-snug`}>
+                      Espando il mio linguaggio collaborando con altri artisti, sviluppando competenze in videomaking, editing e grafica vettoriale.
+                    </p>
+                  </div>
+                </FadeIn>
+                <FadeIn delay={300}>
+                  <div className="relative pl-8">
+                    <span className={`absolute left-0 top-1.5 w-[15px] h-[15px] rounded-full border-2 ${cBorder} ${cBgMain}`} />
+                    <span className={`block text-xs font-semibold uppercase tracking-widest ${cTextMuted} mb-2`}>Per 5 anni</span>
+                    <p className={`text-lg md:text-2xl font-medium tracking-tight ${cTextMuted} leading-snug`}>
+                      Mi dedico alla produzione audio, realizzando oltre 100 strumentali ed entrando nella sezione producer di <strong className={cTextMain}>HONIRO</strong>.
+                    </p>
+                  </div>
+                </FadeIn>
+                <FadeIn delay={400}>
+                  <div className="relative pl-8">
+                    <span className={`absolute left-0 top-1.5 w-[15px] h-[15px] rounded-full border-2 ${cBorder} ${cBgMain}`} />
+                    <span className={`block text-xs font-semibold uppercase tracking-widest ${cTextMuted} mb-2`}>2023</span>
+                    <p className={`text-lg md:text-2xl font-medium tracking-tight ${cTextMuted} leading-snug`}>
+                      Mi laureo in economia e management, per poi tornare alle arti visive con un approccio più strutturato: modellazione, compositing 3D e web design.
+                    </p>
+                  </div>
+                </FadeIn>
+                <FadeIn delay={500}>
+                  <div className="relative pl-8">
+                    <span className={`absolute left-0 top-1.5 w-[15px] h-[15px] rounded-full ${isDark ? 'bg-white' : 'bg-black'}`} />
+                    <span className={`block text-xs font-semibold uppercase tracking-widest ${cTextMuted} mb-2`}>Oggi</span>
+                    <div className={`p-8 md:p-12 rounded-[2rem] ${cCard} border ${cBorder} relative overflow-hidden shadow-sm`}>
+                      <p className={`text-xl md:text-3xl ${cTextMain} font-semibold mb-4 md:mb-6 leading-tight tracking-tight`}>Unisco tutto questo in un sistema compatto: visione, tecnica e direzione.</p>
+                      <p className={`text-base md:text-lg ${cTextMuted}`}>Un mix diretto, progettato per comunicare. Posso aiutarti a strutturare una comunicazione efficace e multi-piattaforma per il tuo business, progetto o evento.</p>
+                    </div>
+                  </div>
+                </FadeIn>
+              </div>
             </div>
           </div>
         </section>
