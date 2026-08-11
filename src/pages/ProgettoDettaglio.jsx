@@ -92,11 +92,21 @@ export default function ProgettoDettaglio() {
                 {project.description}
               </p>
             )}
-            {project.instagram_url && (
-              <a href={project.instagram_url} target="_blank" rel="noopener noreferrer"
-                className={`mt-8 inline-flex items-center gap-2 px-5 py-3 rounded-full border ${cBorder} text-sm font-medium ${isDark ? 'hover:bg-white hover:text-black' : 'hover:bg-black hover:text-white'} transition-all active:scale-95`}>
-                <Instagram size={16} /> Vedi su Instagram <ArrowUpRight size={14} />
-              </a>
+            {(project.instagram_url || project.website_url) && (
+              <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                {project.instagram_url && (
+                  <a href={project.instagram_url} target="_blank" rel="noopener noreferrer"
+                    className={`inline-flex items-center gap-2 px-5 py-3 rounded-full border ${cBorder} text-sm font-medium ${isDark ? 'hover:bg-white hover:text-black' : 'hover:bg-black hover:text-white'} transition-all active:scale-95`}>
+                    <Instagram size={16} /> Vedi su Instagram <ArrowUpRight size={14} />
+                  </a>
+                )}
+                {project.website_url && (
+                  <a href={project.website_url} target="_blank" rel="noopener noreferrer"
+                    className={`inline-flex items-center gap-2 px-5 py-3 rounded-full border ${cBorder} text-sm font-medium ${isDark ? 'hover:bg-white hover:text-black' : 'hover:bg-black hover:text-white'} transition-all active:scale-95`}>
+                    <ArrowUpRight size={16} /> {project.website_label || 'Visita il sito'}
+                  </a>
+                )}
+              </div>
             )}
           </header>
 
@@ -114,6 +124,11 @@ export default function ProgettoDettaglio() {
                   ) : (
                     <img src={m.url} alt={`${project.title} ${i + 1}`} loading={i === 0 ? 'eager' : 'lazy'} className="w-full h-auto block" />
                   )}
+                  {m.caption ? (
+                    <div className={`px-6 py-4 border-t ${cBorder} ${cBgSec}`}>
+                      <p className={`text-sm ${cTextMuted}`}>{m.caption}</p>
+                    </div>
+                  ) : null}
                 </div>
               ))}
             </div>

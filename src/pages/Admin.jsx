@@ -20,7 +20,7 @@ import { uploadMediaFile, deleteMediaPaths, pathFromUrl, slugify, ensureUniqueSl
 const CATEGORIES = ['Branding', 'Web Design', 'Print', 'Art Direction', 'UI/UX', 'Fotografia', '3D']
 
 const EMPTY_FORM = {
-  id: null, title: '', category: 'Branding', instagram_url: '',
+  id: null, title: '', category: 'Branding', instagram_url: '', website_url: '',
   description: '', display_order: 0, media: [], cover: '',
 }
 
@@ -101,11 +101,12 @@ export default function Admin() {
     setPendingPaths([]); setRemovedPaths([]); setError(null); setShowForm(true)
   }
   const openEdit = (p) => {
-    const media = Array.isArray(p.media) && p.media.length ? p.media
-      : p.img ? [{ url: p.img, path: pathFromUrl(p.img), type: 'image' }] : []
+    const media = Array.isArray(p.media) && p.media.length
+      ? p.media.map((item) => ({ ...item, caption: item.caption || '' }))
+      : p.img ? [{ url: p.img, path: pathFromUrl(p.img), type: 'image', caption: '' }] : []
     setForm({
       id: p.id, title: p.title || '', category: p.category || 'Branding',
-      instagram_url: p.instagram_url || '', description: p.description || '',
+      instagram_url: p.instagram_url || '', website_url: p.website_url || '', description: p.description || '',
       display_order: p.display_order ?? 0, media,
       cover: p.img || (media.find((m) => m.type === 'image')?.url ?? ''),
     })
@@ -123,6 +124,7 @@ export default function Admin() {
     try {
       for (const file of Array.from(files)) {
         const item = await uploadMediaFile(file)
+        item.caption = ''
         setPendingPaths((p) => [...p, item.path])
         setForm((f) => {
           const media = [...f.media, item]
@@ -168,6 +170,7 @@ export default function Admin() {
       const payload = {
         title: form.title.trim(), category: form.category, slug, img: cover,
         instagram_url: form.instagram_url.trim() || null,
+        website_url: form.website_url.trim() || null,
         description: form.description.trim() || null,
         display_order: Number(form.display_order) || 0, media: form.media,
       }
@@ -352,9 +355,15 @@ export default function Admin() {
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onMediaDragEnd}>
                   <SortableContext items={form.media.map((m) => m.url)} strategy={rectSortingStrategy}>
                     <div className="grid grid-cols-3 gap-2 mb-3">
-                      {form.media.map((m) => (
+                      {form.media.map((m, index) => (
                         <SortableMedia key={m.url} m={m} isCover={m.url === form.cover} cBorder={cBorder}
-                          onRemove={() => removeMedia(m)} onCover={() => setCover(m)} />
+                          onRemove={() => removeMedia(m)} onCover={() => setCover(m)}
+                          onCaptionChange={(value) => setForm((f) => {
+                            const media = [...f.media]
+                            media[index] = { ...media[index], caption: value }
+                            return { ...f, media }
+                          })}
+                        />
                       ))}
                     </div>
                   </SortableContext>
@@ -378,6 +387,7 @@ export default function Admin() {
               </select>
             </Field>
             <Field label="Link Instagram (opzionale)"><input type="url" placeholder="https://instagram.com/p/..." value={form.instagram_url} onChange={(e) => setForm({ ...form, instagram_url: e.target.value })} className={inp} /></Field>
+            <Field label="Link sito / progetto (opzionale)"><input type="url" placeholder="https://esempio.com" value={form.website_url} onChange={(e) => setForm({ ...form, website_url: e.target.value })} className={inp} /></Field>
             <Field label="Descrizione (opzionale)"><textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={`${inp} resize-none`} /></Field>
 
             {error && <p className="text-sm text-red-500">{error}</p>}
@@ -417,7 +427,7 @@ function SortableProject({ id, p, t, isDark, onEdit, onDelete }) {
 }
 
 // --- Tile media ordinabile ---
-function SortableMedia({ m, isCover, cBorder, onRemove, onCover }) {
+function SortableMedia({ m, isCover, cBorder, onRemove, onCover, onCaptionChange }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: m.url })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1 }
   const stop = (e) => e.stopPropagation()
@@ -445,6 +455,15 @@ function SortableMedia({ m, isCover, cBorder, onRemove, onCover }) {
           <Star size={9} className="fill-white" /> COVER
         </div>
       )}
+      <div className="absolute left-0 right-0 bottom-0 p-2 bg-black/60">
+        <input
+          type="text"
+          value={m.caption || ''}
+          onChange={(e) => onCaptionChange?.(e.target.value)}
+          placeholder="Didascalia immagine"
+          className="w-full rounded-md border border-white/20 bg-black/20 px-2 py-1 text-[11px] text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-white/20"
+        />
+      </div>
     </div>
   )
 }

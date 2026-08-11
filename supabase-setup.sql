@@ -41,7 +41,42 @@ create policy "Scrittura admin progetti"
   using (true)
   with check (true);
 
--- 5) STORAGE BUCKET PER LE IMMAGINI
+-- 5) TABELLA MESSAGGI
+create table if not exists public.messaggi (
+  id          uuid primary key default gen_random_uuid(),
+  nome        text not null,
+  email       text not null,
+  oggetto     text,
+  messaggio   text not null,
+  letto       boolean not null default false,
+  created_at  timestamptz not null default now()
+);
+
+alter table public.messaggi enable row level security;
+
+--    Invio messaggi dal form pubblico
+drop policy if exists "Invio pubblico messaggi" on public.messaggi;
+create policy "Invio pubblico messaggi"
+  on public.messaggi for insert
+  to anon, authenticated
+  with check (true);
+
+--    Lettura messaggi solo per utenti autenticati
+drop policy if exists "Lettura admin messaggi" on public.messaggi;
+create policy "Lettura admin messaggi"
+  on public.messaggi for select
+  to authenticated
+  using (true);
+
+--    Gestione messaggi (lettura, aggiornamento, cancellazione) solo per admin
+drop policy if exists "Gestione admin messaggi" on public.messaggi;
+create policy "Gestione admin messaggi"
+  on public.messaggi for update, delete
+  to authenticated
+  using (true)
+  with check (true);
+
+-- 6) STORAGE BUCKET PER LE IMMAGINI
 insert into storage.buckets (id, name, public)
 values ('progetti', 'progetti', true)
 on conflict (id) do nothing;
