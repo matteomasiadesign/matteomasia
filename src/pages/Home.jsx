@@ -243,9 +243,9 @@ export default function Home() {
 
   const menuItems = [
     { name: 'Archivio', id: 'projects' },
-    { name: 'Competenze', id: 'services' },
-    { name: 'Vision', id: 'bio' },
-    { name: 'Contatti', id: 'contact' },
+    { name: 'Servizi', id: 'services' },
+    { name: 'Chi sono', id: 'bio' },
+    { name: 'Lavora con me', id: 'contact' },
   ]
 
   const t = getTokens(isDark)
@@ -383,7 +383,7 @@ export default function Home() {
                   onClick={() => scrollToSection('contact')}
                   className={`w-full md:w-auto px-8 py-4 rounded-full ${cBtnBgPrimary} font-semibold tracking-tight text-lg active:scale-95 hover:scale-105 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-[0_5px_20px_rgba(0,0,0,0.1)]`}
                 >
-                  Contattami
+                  Lavora con me
                 </button>
                 <button
                   onClick={() => scrollToSection('projects')}
@@ -445,7 +445,7 @@ export default function Home() {
                       alt={project.title}
                       className="w-full h-full object-cover transition-transform duration-[1.5s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
                     />
-                    <div className="absolute top-4 left-4 md:top-6 md:left-6 px-4 py-2 rounded-full bg-black/40 backdrop-blur-md border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                    <div className="absolute top-4 left-4 md:top-6 md:left-6 px-4 py-2 rounded-full bg-black/40 backdrop-blur-md border border-white/10">
                       <span className="text-xs font-semibold tracking-widest uppercase text-white">{project.category}</span>
                     </div>
                   </div>
@@ -487,7 +487,7 @@ export default function Home() {
         <section id="services" className={`py-24 md:py-40 ${cBgSec} px-6 transition-colors duration-700`}>
           <div className="max-w-[980px] mx-auto">
             <FadeIn>
-              <h2 className="text-3xl md:text-5xl font-semibold tracking-tight mb-12 md:mb-20">Competenze.</h2>
+              <h2 className="text-3xl md:text-5xl font-semibold tracking-tight mb-12 md:mb-20">Servizi.</h2>
             </FadeIn>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
@@ -584,6 +584,7 @@ export default function Home() {
                   <p className={`text-xl md:text-2xl font-medium ${cTextMuted} leading-snug mb-2`}>
                     Vuoi propormi una collaborazione, richiedere un preventivo o scambiare due chiacchiere?
                   </p>
+                  <p className={`text-sm font-medium ${cTextMuted} opacity-70`}>Rispondo di solito entro 24h.</p>
                 </FadeIn>
 
                 <FadeIn delay={200} className="flex flex-col gap-8">
