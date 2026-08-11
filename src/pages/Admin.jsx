@@ -148,6 +148,11 @@ export default function Admin() {
     }
   }
   const setCover = (item) => { if (item.type === 'image') setForm((f) => ({ ...f, cover: item.url })) }
+  const updateCaption = (index, value) => setForm((f) => {
+    const media = [...f.media]
+    media[index] = { ...media[index], caption: value }
+    return { ...f, media }
+  })
 
   const onMediaDragEnd = (event) => {
     const { active, over } = event
@@ -355,14 +360,9 @@ export default function Admin() {
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onMediaDragEnd}>
                   <SortableContext items={form.media.map((m) => m.url)} strategy={rectSortingStrategy}>
                     <div className="grid grid-cols-3 gap-2 mb-3">
-                      {form.media.map((m, index) => (
+                      {form.media.map((m) => (
                         <SortableMedia key={m.url} m={m} isCover={m.url === form.cover} cBorder={cBorder}
                           onRemove={() => removeMedia(m)} onCover={() => setCover(m)}
-                          onCaptionChange={(value) => setForm((f) => {
-                            const media = [...f.media]
-                            media[index] = { ...media[index], caption: value }
-                            return { ...f, media }
-                          })}
                         />
                       ))}
                     </div>
@@ -379,6 +379,35 @@ export default function Admin() {
                 Immagini compresse in automatico, video già a 720p. Trascina per ordinare · <Star size={10} className="inline" /> imposta la copertina.
               </p>
             </div>
+
+            {/* DIDASCALIE */}
+            {form.media.length > 0 && (
+              <div>
+                <label className={`text-xs font-semibold uppercase tracking-wider ${cTextMuted} block mb-2`}>
+                  Didascalie
+                </label>
+                <div className="flex flex-col gap-2">
+                  {form.media.map((m, index) => (
+                    <div key={m.url} className={`flex items-center gap-3 p-2 rounded-xl border ${cBorder} ${m.url === form.cover ? 'ring-1 ring-green-500/40' : ''}`}>
+                      <div className={`relative w-14 h-14 rounded-lg overflow-hidden shrink-0 border ${cBorder}`}>
+                        {m.type === 'video' ? (
+                          <video src={m.url} className="w-full h-full object-cover" muted playsInline preload="metadata" />
+                        ) : (
+                          <img src={m.url} alt="" className="w-full h-full object-cover" />
+                        )}
+                      </div>
+                      <input
+                        type="text"
+                        value={m.caption || ''}
+                        onChange={(e) => updateCaption(index, e.target.value)}
+                        placeholder={`Didascalia media ${index + 1}`}
+                        className={`${inp} flex-1`}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <Field label="Titolo *"><input type="text" value={form.title} required onChange={(e) => setForm({ ...form, title: e.target.value })} className={inp} /></Field>
             <Field label="Categoria">
@@ -427,7 +456,7 @@ function SortableProject({ id, p, t, isDark, onEdit, onDelete }) {
 }
 
 // --- Tile media ordinabile ---
-function SortableMedia({ m, isCover, cBorder, onRemove, onCover, onCaptionChange }) {
+function SortableMedia({ m, isCover, cBorder, onRemove, onCover }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: m.url })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1 }
   const stop = (e) => e.stopPropagation()
@@ -455,15 +484,6 @@ function SortableMedia({ m, isCover, cBorder, onRemove, onCover, onCaptionChange
           <Star size={9} className="fill-white" /> COVER
         </div>
       )}
-      <div className="absolute left-0 right-0 bottom-0 p-2 bg-black/60">
-        <input
-          type="text"
-          value={m.caption || ''}
-          onChange={(e) => onCaptionChange?.(e.target.value)}
-          placeholder="Didascalia immagine"
-          className="w-full rounded-md border border-white/20 bg-black/20 px-2 py-1 text-[11px] text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-white/20"
-        />
-      </div>
     </div>
   )
 }
