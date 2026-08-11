@@ -487,7 +487,11 @@ export default function Home() {
         <section id="services" className={`py-24 md:py-40 ${cBgSec} px-6 transition-colors duration-700`}>
           <div className="max-w-[980px] mx-auto">
             <FadeIn>
-              <h2 className="text-3xl md:text-5xl font-semibold tracking-tight mb-12 md:mb-20">Servizi.</h2>
+              <div className="mb-10 md:mb-16">
+                <span className={`block text-xs font-semibold uppercase tracking-widest ${cTextMuted} mb-3`}>Competenze</span>
+                <h2 className="text-3xl md:text-5xl font-semibold tracking-tight mb-3">Servizi.</h2>
+                <p className={`${cTextMuted} text-lg md:text-xl font-medium tracking-tight max-w-xl`}>Le aree in cui posso aiutarti, dalla grafica alla comunicazione digitale.</p>
+              </div>
             </FadeIn>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
