@@ -497,35 +497,41 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
               {services.map((service, idx) => (
                 <FadeIn key={service.id} delay={idx * 100} direction="scale">
-                  <div className={`group flex flex-col h-full rounded-2xl md:rounded-[2rem] overflow-hidden ${cCard} border ${cBorder} shadow-sm`}>
-                    <div className={`aspect-[16/10] overflow-hidden ${cBgMain} relative`}>
-                      {service.img ? (
-                        <img
-                          src={service.img}
-                          alt={service.title}
-                          loading="lazy"
-                          className="w-full h-full object-cover transition-transform duration-[1.5s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
-                        />
-                      ) : (
-                        <div className={`w-full h-full flex items-center justify-center px-6 text-center ${cTextMuted}`}>
-                          <span className="text-sm font-medium">{service.title}</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex flex-col flex-1 p-6 md:p-8">
-                      <h3 className="text-xl md:text-2xl font-semibold tracking-tight mb-2">{service.title}</h3>
-                      {service.description && (
-                        <p className={`${cTextMuted} text-sm md:text-base leading-relaxed mb-6 flex-1`}>{service.description}</p>
-                      )}
-                      {service.cta_link && (
-                        <button
-                          onClick={() => handleServiceCta(service.cta_link)}
-                          className={`group/cta mt-auto self-start flex items-center gap-2 text-sm font-semibold ${cTextMain} ${isDark ? 'hover:text-white' : 'hover:text-black'} active:scale-95 transition-all`}
-                        >
-                          {service.cta_label || 'Scopri di più'}
-                          <ArrowUpRight size={16} className="group-hover/cta:translate-x-0.5 group-hover/cta:-translate-y-0.5 transition-transform" />
-                        </button>
-                      )}
+                  <div className="group relative h-full rounded-2xl md:rounded-[2rem]">
+                    <div
+                      aria-hidden="true"
+                      className={`pointer-events-none absolute -inset-0.5 rounded-2xl md:rounded-[2rem] bg-gradient-to-r from-[#ff0844] via-[#4facfe] to-[#a18cd1] blur-md opacity-0 transition-opacity duration-500 ${isDark ? 'group-hover:opacity-80' : 'group-hover:opacity-50'}`}
+                    />
+                    <div className={`relative z-10 flex flex-col h-full rounded-2xl md:rounded-[2rem] overflow-hidden ${cCard} border ${cBorder} shadow-sm`}>
+                      <div className={`aspect-[16/10] overflow-hidden ${cBgMain} relative`}>
+                        {service.img ? (
+                          <img
+                            src={service.img}
+                            alt={service.title}
+                            loading="lazy"
+                            className="w-full h-full object-cover transition-transform duration-[1.5s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
+                          />
+                        ) : (
+                          <div className={`w-full h-full flex items-center justify-center px-6 text-center ${cTextMuted}`}>
+                            <span className="text-sm font-medium">{service.title}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex flex-col flex-1 p-6 md:p-8">
+                        <h3 className="text-xl md:text-2xl font-semibold tracking-tight mb-2">{service.title}</h3>
+                        {service.description && (
+                          <p className={`${cTextMuted} text-sm md:text-base leading-relaxed mb-6 flex-1`}>{service.description}</p>
+                        )}
+                        {service.cta_link && (
+                          <button
+                            onClick={() => handleServiceCta(service.cta_link)}
+                            className={`group/cta mt-auto self-start flex items-center gap-2 text-sm font-semibold ${cTextMain} ${isDark ? 'hover:text-white' : 'hover:text-black'} active:scale-95 transition-all`}
+                          >
+                            {service.cta_label || 'Scopri di più'}
+                            <ArrowUpRight size={16} className="group-hover/cta:translate-x-0.5 group-hover/cta:-translate-y-0.5 transition-transform" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </FadeIn>
