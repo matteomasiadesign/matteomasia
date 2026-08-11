@@ -6,7 +6,6 @@ import { getTokens } from '../lib/tokens.js'
 import { useProjects } from '../lib/useProjects.js'
 import { useServices } from '../lib/useServices.js'
 import { supabase, isSupabaseReady } from '../lib/supabase.js'
-import { ScrambleText } from '../components/ScrambleText.jsx'
 
 // --- COMPONENTE ANIMAZIONE REVEAL ---
 const FadeIn = ({ children, delay = 0, direction = 'up', className = '' }) => {
@@ -46,28 +45,6 @@ const FadeIn = ({ children, delay = 0, direction = 'up', className = '' }) => {
       style={{ opacity: isVisible ? 1 : 0, transform: getTransform(), transitionDelay: `${delay}ms` }}
     >
       {children}
-    </div>
-  )
-}
-
-// --- PRELOADER ---
-const Preloader = ({ ready, isDark, onDone }) => {
-  const [mounted, setMounted] = useState(true)
-  if (!mounted) return null
-
-  return (
-    <div
-      onTransitionEnd={(e) => {
-        if (e.propertyName === 'opacity' && ready) {
-          setMounted(false)
-          onDone()
-        }
-      }}
-      className={`fixed inset-0 z-[100] flex items-center justify-center transition-opacity duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${isDark ? 'bg-black' : 'bg-[#f5f5f7]'} ${ready ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
-    >
-      <span className={`preloader-logo text-2xl md:text-3xl font-semibold tracking-tight ${isDark ? 'text-white' : 'text-black'}`}>
-        Matteo Masia.
-      </span>
     </div>
   )
 }
@@ -121,26 +98,8 @@ const AnimatedNeonWaves = ({ theme }) => {
 export default function Home() {
   const { theme, toggleTheme, isDark } = useTheme()
   const navigate = useNavigate()
-  const { projects, loading: projectsLoading } = useProjects()
-  const { services, loading: servicesLoading } = useServices()
-
-  // Preloader: resta visibile per un tempo minimo e finche' i dati non sono
-  // pronti (con un timeout di sicurezza per non restare bloccati in caso di errore rete).
-  const [minDelayDone, setMinDelayDone] = useState(false)
-  const [forceReady, setForceReady] = useState(false)
-  const [heroTrigger, setHeroTrigger] = useState(false)
-
-  useEffect(() => {
-    const minTimer = setTimeout(() => setMinDelayDone(true), 900)
-    const maxTimer = setTimeout(() => setForceReady(true), 4000)
-    return () => {
-      clearTimeout(minTimer)
-      clearTimeout(maxTimer)
-    }
-  }, [])
-
-  const dataReady = (!projectsLoading && !servicesLoading) || forceReady
-  const preloaderReady = minDelayDone && dataReady
+  const { projects } = useProjects()
+  const { services } = useServices()
 
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
@@ -331,16 +290,7 @@ export default function Home() {
         .card-glow {
           animation: spin-slow 6s linear infinite;
         }
-        @keyframes preloader-pulse {
-          0%, 100% { opacity: 0.35; transform: scale(0.96); }
-          50% { opacity: 1; transform: scale(1); }
-        }
-        .preloader-logo {
-          animation: preloader-pulse 1.4s ease-in-out infinite;
-        }
       `}</style>
-
-      <Preloader ready={preloaderReady} isDark={isDark} onDone={() => setHeroTrigger(true)} />
 
       {/* --- DESKTOP NAVBAR --- */}
       <header className={`hidden md:block fixed top-0 left-0 w-full z-50 transition-all duration-500 ${scrolled ? `${cGlass} backdrop-blur-xl border-b py-3` : 'bg-transparent py-6'}`}>
@@ -431,7 +381,7 @@ export default function Home() {
           <div className="max-w-[980px] mx-auto w-full flex flex-col items-center text-center z-10 relative mt-10 md:mt-0">
             <FadeIn delay={100}>
               <h1 className="text-[14vw] md:text-[6rem] lg:text-[8rem] font-semibold tracking-tighter leading-[1.05] apple-gradient-text mb-3 md:mb-4">
-                <ScrambleText text="Matteo Masia." trigger={heroTrigger} letterDurationMs={1000} />
+                Matteo Masia.
               </h1>
             </FadeIn>
 
