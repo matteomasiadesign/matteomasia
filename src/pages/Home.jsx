@@ -276,6 +276,13 @@ export default function Home() {
           box-shadow: 0 0 0 4px ${isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'};
         }
         .apple-input::placeholder { color: #86868b; }
+        @keyframes glow-pulse {
+          0%, 100% { box-shadow: var(--glow-rest); }
+          50% { box-shadow: var(--glow-peak); }
+        }
+        .glow-dot {
+          animation: glow-pulse 3.6s ease-in-out infinite;
+        }
       `}</style>
 
       {/* --- DESKTOP NAVBAR --- */}
@@ -560,7 +567,7 @@ export default function Home() {
               <div className="flex flex-col gap-8 md:gap-10">
                 <FadeIn delay={100}>
                   <div className="relative pl-8">
-                    <span className="absolute left-0 top-1.5 w-[15px] h-[15px] rounded-full bg-[#ff2d6b]/20 shadow-[0_0_6px_1px_rgba(255,45,107,0.25)]" />
+                    <span className="glow-dot absolute left-0 top-1.5 w-[15px] h-[15px] rounded-full bg-[#ff2d6b]/20" style={{ '--glow-rest': '0 0 4px 0px rgba(255,45,107,0.15)', '--glow-peak': '0 0 8px 2px rgba(255,45,107,0.35)', animationDelay: '0s' }} />
                     <span className={`block text-xs font-semibold uppercase tracking-widest ${cTextMuted} mb-2`}>Fotografia</span>
                     <p className={`text-lg md:text-2xl font-medium tracking-tight ${cTextMuted} leading-snug`}>
                       Visual e Web Designer, classe '97, nato in <strong className={cTextMain}>Sardegna</strong>. Inizio il mio percorso nelle arti visive con la fotografia.
@@ -569,7 +576,7 @@ export default function Home() {
                 </FadeIn>
                 <FadeIn delay={200}>
                   <div className="relative pl-8">
-                    <span className="absolute left-0 top-1.5 w-[15px] h-[15px] rounded-full bg-[#ff2d6b]/35 shadow-[0_0_9px_2px_rgba(255,45,107,0.35)]" />
+                    <span className="glow-dot absolute left-0 top-1.5 w-[15px] h-[15px] rounded-full bg-[#ff2d6b]/35" style={{ '--glow-rest': '0 0 6px 1px rgba(255,45,107,0.25)', '--glow-peak': '0 0 12px 3px rgba(255,45,107,0.45)', animationDelay: '0.4s' }} />
                     <span className={`block text-xs font-semibold uppercase tracking-widest ${cTextMuted} mb-2`}>Nuovi linguaggi</span>
                     <p className={`text-lg md:text-2xl font-medium tracking-tight ${cTextMuted} leading-snug`}>
                       Espando il mio linguaggio collaborando con altri artisti, sviluppando competenze in videomaking, editing e grafica vettoriale.
@@ -578,7 +585,7 @@ export default function Home() {
                 </FadeIn>
                 <FadeIn delay={300}>
                   <div className="relative pl-8">
-                    <span className="absolute left-0 top-1.5 w-[15px] h-[15px] rounded-full bg-[#ff2d6b]/50 shadow-[0_0_13px_3px_rgba(255,45,107,0.45)]" />
+                    <span className="glow-dot absolute left-0 top-1.5 w-[15px] h-[15px] rounded-full bg-[#ff2d6b]/50" style={{ '--glow-rest': '0 0 9px 2px rgba(255,45,107,0.35)', '--glow-peak': '0 0 17px 4px rgba(255,45,107,0.55)', animationDelay: '0.8s' }} />
                     <span className={`block text-xs font-semibold uppercase tracking-widest ${cTextMuted} mb-2`}>Produzione audio</span>
                     <p className={`text-lg md:text-2xl font-medium tracking-tight ${cTextMuted} leading-snug`}>
                       Mi dedico alla produzione audio, realizzando oltre 100 strumentali ed entrando nella sezione producer di <strong className={cTextMain}>HONIRO</strong>.
@@ -587,7 +594,7 @@ export default function Home() {
                 </FadeIn>
                 <FadeIn delay={400}>
                   <div className="relative pl-8">
-                    <span className="absolute left-0 top-1.5 w-[15px] h-[15px] rounded-full bg-[#ff2d6b]/65 shadow-[0_0_17px_4px_rgba(255,45,107,0.55)]" />
+                    <span className="glow-dot absolute left-0 top-1.5 w-[15px] h-[15px] rounded-full bg-[#ff2d6b]/65" style={{ '--glow-rest': '0 0 12px 3px rgba(255,45,107,0.45)', '--glow-peak': '0 0 22px 5px rgba(255,45,107,0.65)', animationDelay: '1.2s' }} />
                     <span className={`block text-xs font-semibold uppercase tracking-widest ${cTextMuted} mb-2`}>Nuova direzione</span>
                     <p className={`text-lg md:text-2xl font-medium tracking-tight ${cTextMuted} leading-snug`}>
                       Mi laureo in economia e management, per poi tornare alle arti visive con un approccio più strutturato: modellazione, compositing 3D e web design.
@@ -596,7 +603,7 @@ export default function Home() {
                 </FadeIn>
                 <FadeIn delay={500}>
                   <div className="relative pl-8">
-                    <span className={`absolute left-0 top-1 w-[18px] h-[18px] rounded-full ${isDark ? 'bg-white' : 'bg-black'} shadow-[0_0_24px_6px_rgba(255,45,107,0.8)]`} />
+                    <span className={`glow-dot absolute left-0 top-1 w-[18px] h-[18px] rounded-full ${isDark ? 'bg-white' : 'bg-black'}`} style={{ '--glow-rest': '0 0 16px 4px rgba(255,45,107,0.6)', '--glow-peak': '0 0 32px 8px rgba(255,45,107,0.9)', animationDelay: '1.6s' }} />
                     <span className={`block text-xs font-semibold uppercase tracking-widest ${cTextMuted} mb-2`}>Oggi</span>
                     <div className={`p-8 md:p-12 rounded-[2rem] ${cCard} border ${cBorder} relative overflow-hidden shadow-sm`}>
                       <p className={`text-xl md:text-3xl ${cTextMain} font-semibold mb-4 md:mb-6 leading-tight tracking-tight`}>Unisco tutto questo in un sistema compatto: visione, tecnica e direzione.</p>
