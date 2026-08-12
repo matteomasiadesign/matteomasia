@@ -41,4 +41,8 @@ body {
     animation-duration: 32s !important;
     animation-iteration-count: infinite !important;
   }
+  .timeline-signal {
+    animation-duration: 4s !important;
+    animation-iteration-count: infinite !important;
+  }
 }

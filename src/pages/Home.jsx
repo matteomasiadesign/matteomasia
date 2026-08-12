@@ -658,6 +658,7 @@ export default function Home() {
                 <span
                   className="timeline-signal absolute left-1/2 -translate-x-1/2 w-[3px] h-[70px] rounded-full"
                   style={{
+                    top: '-8%',
                     background: 'linear-gradient(to bottom, transparent, #ff2d6b 45%, #ff8a5c 55%, transparent)',
                     boxShadow: '0 0 14px 3px rgba(255,45,107,0.6)',
                   }}
