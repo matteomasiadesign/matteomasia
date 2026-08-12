@@ -379,19 +379,22 @@ export default function Home() {
           <AnimatedNeonWaves theme={theme} />
 
           <div className="max-w-[980px] mx-auto w-full flex flex-col items-center text-center z-10 relative mt-10 md:mt-0">
-            <FadeIn delay={100}>
-              <h1 className="text-[14vw] md:text-[6rem] lg:text-[8rem] font-semibold tracking-tighter leading-[1.05] apple-gradient-text mb-3 md:mb-4">
-                Matteo Masia.
-              </h1>
-            </FadeIn>
+            <h1 className="text-[14vw] md:text-[6rem] lg:text-[8rem] font-semibold tracking-tighter leading-[1.05] apple-gradient-text mb-3 md:mb-4">
+              {['Matteo', 'Masia.'].map((word, i) => (
+                <React.Fragment key={word}>
+                  {i > 0 && ' '}
+                  <span className="apple-gradient-text hero-reveal-word" style={{ animationDelay: `${i * 180}ms` }}>{word}</span>
+                </React.Fragment>
+              ))}
+            </h1>
 
-            <FadeIn delay={300}>
+            <FadeIn delay={450}>
               <p className={`text-xl md:text-3xl font-medium ${cTextMuted} max-w-2xl mx-auto tracking-tight leading-tight mb-10 md:mb-14 ${isDark ? 'drop-shadow-md' : ''}`}>
                 Visual & Digital Product Designer — Comunicazione visiva per imprese, progetti ed eventi.
               </p>
             </FadeIn>
 
-            <FadeIn delay={500}>
+            <FadeIn delay={650}>
               <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto px-4 md:px-0">
                 <button
                   onClick={() => scrollToSection('contact')}
