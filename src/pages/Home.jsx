@@ -1,6 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowUpRight, ArrowRight, ArrowLeft, Menu, X, CheckCircle2, Copy, Check, MessageCircle, Sun, Moon } from 'lucide-react'
+import { ArrowUpRight, ArrowRight, ArrowLeft, Menu, X, CheckCircle2, Copy, Check, MessageCircle, Sun, Moon, Clapperboard } from 'lucide-react'
+import {
+  TbBrandAdobePhotoshop,
+  TbBrandAdobeIllustrator,
+  TbBrandAdobeIndesign,
+  TbBrandAdobePremiere,
+  TbBrandFigma,
+  TbBrandFramer,
+  TbBrandBlender,
+  TbBrandVscode,
+} from 'react-icons/tb'
 import { useTheme } from '../lib/ThemeContext.jsx'
 import { getTokens } from '../lib/tokens.js'
 import { useProjects } from '../lib/useProjects.js'
@@ -90,6 +100,65 @@ const AnimatedNeonWaves = ({ theme }) => {
             </linearGradient>
           </defs>
         </svg>
+      </div>
+    </div>
+  )
+}
+
+// Icona "Lr" per Lightroom, disegnata nello stesso stile badge delle icone
+// Adobe di Tabler (non esiste nel set ufficiale della libreria).
+const TbBrandAdobeLightroom = ({ size = 24, className = '', ...props }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    {...props}
+  >
+    <path d="M3 12c0 -4.243 0 -6.364 1.318 -7.682s3.44 -1.318 7.682 -1.318s6.364 0 7.682 1.318s1.318 3.44 1.318 7.682s0 6.364 -1.318 7.682s-3.44 1.318 -7.682 1.318s-6.364 0 -7.682 -1.318s-1.318 -3.44 -1.318 -7.682" />
+    <path d="M7.263 8.684v7.106h3.5" />
+    <path d="M13.895 10.579v1.895m0 0v3.315m0 -3.315c.531 -.709 1.026 -1.592 1.894 -1.832q .22 -.062 .474 -.063" />
+  </svg>
+)
+
+// --- SOFTWARE UTILIZZATI (per il ticker) ---
+const TOOLS = [
+  { name: 'Photoshop', Icon: TbBrandAdobePhotoshop },
+  { name: 'Illustrator', Icon: TbBrandAdobeIllustrator },
+  { name: 'InDesign', Icon: TbBrandAdobeIndesign },
+  { name: 'Premiere', Icon: TbBrandAdobePremiere },
+  { name: 'Lightroom', Icon: TbBrandAdobeLightroom },
+  { name: 'CapCut', Icon: Clapperboard },
+  { name: 'Figma', Icon: TbBrandFigma },
+  { name: 'Framer', Icon: TbBrandFramer },
+  { name: 'Blender 3D', Icon: TbBrandBlender },
+  { name: 'VS Code', Icon: TbBrandVscode },
+]
+
+// --- COMPONENTE TICKER SOFTWARE (scorrimento infinito, sfondo trasparente) ---
+const ToolsTicker = ({ cTextMuted, isDark }) => {
+  // Duplichiamo la lista per ottenere un loop visivo continuo
+  const items = [...TOOLS, ...TOOLS]
+
+  return (
+    <div className="relative w-full overflow-hidden py-10 md:py-14 select-none">
+      {/* Sfumature ai bordi per un ingresso/uscita morbida delle icone */}
+      <div className={`pointer-events-none absolute inset-y-0 left-0 w-16 md:w-40 z-10 bg-gradient-to-r ${isDark ? 'from-black' : 'from-[#f5f5f7]'} to-transparent`} />
+      <div className={`pointer-events-none absolute inset-y-0 right-0 w-16 md:w-40 z-10 bg-gradient-to-l ${isDark ? 'from-black' : 'from-[#f5f5f7]'} to-transparent`} />
+
+      <div className="ticker-scroll-track flex w-max animate-[ticker-scroll_32s_linear_infinite] hover:[animation-play-state:paused]">
+        {items.map(({ name, Icon }, i) => (
+          <div key={`${name}-${i}`} className="flex items-center gap-3 shrink-0 px-8 md:px-12">
+            <Icon size={30} className={`${cTextMuted} opacity-70 shrink-0`} />
+            <span className={`text-sm md:text-base font-medium tracking-tight whitespace-nowrap ${cTextMuted} opacity-70`}>{name}</span>
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -290,6 +359,10 @@ export default function Home() {
         .card-glow {
           animation: spin-slow 6s linear infinite;
         }
+        @keyframes ticker-scroll {
+          from { transform: translateX(0); }
+          to { transform: translateX(-50%); }
+        }
       `}</style>
 
       {/* --- DESKTOP NAVBAR --- */}
@@ -412,6 +485,9 @@ export default function Home() {
             </FadeIn>
           </div>
         </main>
+
+        {/* --- TICKER SOFTWARE (scorrimento infinito) --- */}
+        <ToolsTicker cTextMuted={cTextMuted} isDark={isDark} />
 
         {/* --- GALLERIA PROGETTI (featured) --- */}
         <section id="projects" className={`pt-16 pb-24 md:pt-20 md:pb-40 w-full overflow-hidden relative z-10 ${cBgMain} transition-colors duration-700`}>

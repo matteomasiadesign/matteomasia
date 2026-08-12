@@ -37,4 +37,8 @@ body {
   .hero-reveal-word {
     animation-duration: 1s !important;
   }
+  .ticker-scroll-track {
+    animation-duration: 32s !important;
+    animation-iteration-count: infinite !important;
+  }
 }
