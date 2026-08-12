@@ -5,22 +5,22 @@ import { supabase } from './supabase'
 // Appena popoli la tabella dall'admin, questi spariscono.
 export const FALLBACK_SERVICES = [
   {
-    id: 's1', title: 'Progettazione grafica per la stampa',
-    description: 'Campagne pubblicitarie offline, brand collateral, cataloghi e riviste, banner ed espositori fieristici.',
-    img: null, cta_label: 'Vedi progetti', cta_link: '/progetti',
-  },
-  {
-    id: 's2', title: 'Progettazione grafica digitale',
+    id: 's2', title: 'Grafica digitale',
     description: 'Asset 2D e 3D per social media, campagne adv digitali e contenuti multimediali ottimizzati per la conversione.',
     img: null, cta_label: 'Vedi progetti', cta_link: '/progetti',
   },
   {
-    id: 's3', title: 'Branding & Identità Visiva',
+    id: 's1', title: 'Grafica per la stampa',
+    description: 'Campagne pubblicitarie offline, brand collateral, cataloghi e riviste, banner ed espositori fieristici.',
+    img: null, cta_label: 'Vedi progetti', cta_link: '/progetti',
+  },
+  {
+    id: 's3', title: 'Branding & Identità visiva',
     description: 'Naming, logo design, palette cromatiche, mockup applicativi e strategia di posizionamento.',
     img: null, cta_label: 'Vedi progetti', cta_link: '/progetti',
   },
   {
-    id: 's4', title: 'Web Design & UI/UX',
+    id: 's4', title: 'Web design & UI/UX',
     description: 'Interfacce interattive lead-oriented, studiate per massimizzare le conversioni e garantire una navigazione fluida.',
     img: null, cta_label: 'Vedi progetti', cta_link: '/progetti',
   },
