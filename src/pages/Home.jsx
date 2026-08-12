@@ -504,7 +504,7 @@ export default function Home() {
               <div className="mb-10 md:mb-16">
                 <span className={`block text-xs font-semibold uppercase tracking-widest ${cTextMuted} mb-3`}>Competenze</span>
                 <h2 className="text-3xl md:text-5xl font-semibold tracking-tight mb-3">Servizi.</h2>
-                <p className={`${cTextMuted} text-lg md:text-xl font-medium tracking-tight max-w-xl`}>Le aree in cui posso aiutarti, dalla grafica alla comunicazione digitale.</p>
+                <p className={`${cTextMuted} text-lg md:text-xl font-medium tracking-tight max-w-xl`}>Quattro aree in cui posso aiutarti per una comunicazione a 360°</p>
               </div>
             </FadeIn>
 
