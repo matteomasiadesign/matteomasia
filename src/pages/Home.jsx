@@ -387,7 +387,7 @@ export default function Home() {
 
             <FadeIn delay={300}>
               <p className={`text-xl md:text-3xl font-medium ${cTextMuted} max-w-2xl mx-auto tracking-tight leading-tight mb-10 md:mb-14 ${isDark ? 'drop-shadow-md' : ''}`}>
-                Visual Designer | Progetto interfacce, sistemi visivi ed esperienze digitali che comunicano.
+                Visual & Digital Product Designer — Comunicazione visiva per imprese, progetti ed eventi.
               </p>
             </FadeIn>
 
