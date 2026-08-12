@@ -669,7 +669,7 @@ export default function Home() {
                 <FadeIn delay={100}>
                   <div className="relative pl-8">
                     <span className="absolute left-0 top-[2px] w-[15px] h-[15px] rounded-full bg-[#ff2d6b]/20" style={{ boxShadow: '0 0 8px 2px rgba(255,45,107,0.3)' }} />
-                    <span className={`block text-xs font-semibold uppercase tracking-widest ${cTextMuted} mb-2`}>Fotografia</span>
+                    <span className={`block text-xs font-semibold uppercase tracking-widest ${cTextMuted} mb-2`}>Il primo amore</span>
                     <p className={`text-lg md:text-2xl font-medium tracking-tight ${cTextMuted} leading-snug`}>
                       Visual e Web Designer, classe '97, nato in <strong className={cTextMain}>Sardegna</strong>. Inizio il mio percorso nelle arti visive con la fotografia.
                     </p>
