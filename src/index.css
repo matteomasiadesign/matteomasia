@@ -23,7 +23,7 @@ body {
 .hero-reveal-word {
   display: inline-block;
   opacity: 0;
-  animation: hero-word-reveal 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: hero-word-reveal 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Accessibilità: chi ha "Riduci movimento" attivo non vede le animazioni
@@ -35,6 +35,6 @@ body {
     animation-iteration-count: 1 !important;
   }
   .hero-reveal-word {
-    animation-duration: 0.6s !important;
+    animation-duration: 1s !important;
   }
 }

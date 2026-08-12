@@ -383,18 +383,18 @@ export default function Home() {
               {['Matteo', 'Masia.'].map((word, i) => (
                 <React.Fragment key={word}>
                   {i > 0 && ' '}
-                  <span className="apple-gradient-text hero-reveal-word" style={{ animationDelay: `${i * 180}ms` }}>{word}</span>
+                  <span className="apple-gradient-text hero-reveal-word" style={{ animationDelay: `${i * 280}ms` }}>{word}</span>
                 </React.Fragment>
               ))}
             </h1>
 
-            <FadeIn delay={450}>
+            <FadeIn delay={750}>
               <p className={`text-xl md:text-3xl font-medium ${cTextMuted} max-w-2xl mx-auto tracking-tight leading-tight mb-10 md:mb-14 ${isDark ? 'drop-shadow-md' : ''}`}>
                 Visual & Digital Product Designer — Comunicazione visiva per imprese, progetti ed eventi.
               </p>
             </FadeIn>
 
-            <FadeIn delay={650}>
+            <FadeIn delay={1050}>
               <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto px-4 md:px-0">
                 <button
                   onClick={() => scrollToSection('contact')}
