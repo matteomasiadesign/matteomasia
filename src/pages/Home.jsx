@@ -345,12 +345,14 @@ export default function Home() {
           box-shadow: 0 0 0 4px ${isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'};
         }
         .apple-input::placeholder { color: #86868b; }
-        @keyframes glow-pulse {
-          0%, 100% { box-shadow: var(--glow-rest); transform: scale(1); }
-          50% { box-shadow: var(--glow-peak); transform: scale(1.25); }
+        @keyframes timeline-signal {
+          0% { top: -8%; opacity: 0; }
+          15% { opacity: 1; }
+          85% { opacity: 1; }
+          100% { top: 100%; opacity: 0; }
         }
-        .glow-dot {
-          animation: glow-pulse 2.6s ease-in-out infinite;
+        .timeline-signal {
+          animation: timeline-signal 4s linear infinite;
         }
         @keyframes spin-slow {
           from { transform: rotate(0deg); }
@@ -651,10 +653,21 @@ export default function Home() {
               {/* Linea verticale del percorso */}
               <div className={`absolute left-[7px] top-2 bottom-2 w-px ${isDark ? 'bg-white/10' : 'bg-black/10'}`} />
 
+              {/* Segnale luminoso che scorre lungo la linea, sempre in movimento */}
+              <div className="absolute left-[7px] top-2 bottom-2 w-px overflow-visible pointer-events-none">
+                <span
+                  className="timeline-signal absolute left-1/2 -translate-x-1/2 w-[3px] h-[70px] rounded-full"
+                  style={{
+                    background: 'linear-gradient(to bottom, transparent, #ff2d6b 45%, #ff8a5c 55%, transparent)',
+                    boxShadow: '0 0 14px 3px rgba(255,45,107,0.6)',
+                  }}
+                />
+              </div>
+
               <div className="flex flex-col gap-8 md:gap-10">
                 <FadeIn delay={100}>
                   <div className="relative pl-8">
-                    <span className="glow-dot absolute left-0 top-[2px] w-[15px] h-[15px] rounded-full bg-[#ff2d6b]/20" style={{ '--glow-rest': '0 0 2px 0px rgba(255,45,107,0.1)', '--glow-peak': '0 0 16px 5px rgba(255,45,107,0.55)', animationDelay: '0s' }} />
+                    <span className="absolute left-0 top-[2px] w-[15px] h-[15px] rounded-full bg-[#ff2d6b]/20" style={{ boxShadow: '0 0 8px 2px rgba(255,45,107,0.3)' }} />
                     <span className={`block text-xs font-semibold uppercase tracking-widest ${cTextMuted} mb-2`}>Fotografia</span>
                     <p className={`text-lg md:text-2xl font-medium tracking-tight ${cTextMuted} leading-snug`}>
                       Visual e Web Designer, classe '97, nato in <strong className={cTextMain}>Sardegna</strong>. Inizio il mio percorso nelle arti visive con la fotografia.
@@ -663,7 +676,7 @@ export default function Home() {
                 </FadeIn>
                 <FadeIn delay={200}>
                   <div className="relative pl-8">
-                    <span className="glow-dot absolute left-0 top-[2px] w-[15px] h-[15px] rounded-full bg-[#ff2d6b]/35" style={{ '--glow-rest': '0 0 3px 0px rgba(255,45,107,0.15)', '--glow-peak': '0 0 22px 6px rgba(255,45,107,0.65)', animationDelay: '0.4s' }} />
+                    <span className="absolute left-0 top-[2px] w-[15px] h-[15px] rounded-full bg-[#ff2d6b]/35" style={{ boxShadow: '0 0 11px 3px rgba(255,45,107,0.4)' }} />
                     <span className={`block text-xs font-semibold uppercase tracking-widest ${cTextMuted} mb-2`}>Nuovi linguaggi</span>
                     <p className={`text-lg md:text-2xl font-medium tracking-tight ${cTextMuted} leading-snug`}>
                       Espando il mio linguaggio collaborando con altri artisti, sviluppando competenze in videomaking, editing e grafica vettoriale.
@@ -672,7 +685,7 @@ export default function Home() {
                 </FadeIn>
                 <FadeIn delay={300}>
                   <div className="relative pl-8">
-                    <span className="glow-dot absolute left-0 top-[2px] w-[15px] h-[15px] rounded-full bg-[#ff2d6b]/50" style={{ '--glow-rest': '0 0 4px 0px rgba(255,45,107,0.2)', '--glow-peak': '0 0 28px 7px rgba(255,45,107,0.75)', animationDelay: '0.8s' }} />
+                    <span className="absolute left-0 top-[2px] w-[15px] h-[15px] rounded-full bg-[#ff2d6b]/50" style={{ boxShadow: '0 0 14px 3px rgba(255,45,107,0.45)' }} />
                     <span className={`block text-xs font-semibold uppercase tracking-widest ${cTextMuted} mb-2`}>Produzione audio</span>
                     <p className={`text-lg md:text-2xl font-medium tracking-tight ${cTextMuted} leading-snug`}>
                       Mi dedico alla produzione audio, realizzando oltre 100 strumentali ed entrando nella sezione producer di <strong className={cTextMain}>HONIRO</strong>.
@@ -681,7 +694,7 @@ export default function Home() {
                 </FadeIn>
                 <FadeIn delay={400}>
                   <div className="relative pl-8">
-                    <span className="glow-dot absolute left-0 top-[2px] w-[15px] h-[15px] rounded-full bg-[#ff2d6b]/65" style={{ '--glow-rest': '0 0 5px 1px rgba(255,45,107,0.25)', '--glow-peak': '0 0 34px 8px rgba(255,45,107,0.85)', animationDelay: '1.2s' }} />
+                    <span className="absolute left-0 top-[2px] w-[15px] h-[15px] rounded-full bg-[#ff2d6b]/65" style={{ boxShadow: '0 0 17px 4px rgba(255,45,107,0.5)' }} />
                     <span className={`block text-xs font-semibold uppercase tracking-widest ${cTextMuted} mb-2`}>Nuova direzione</span>
                     <p className={`text-lg md:text-2xl font-medium tracking-tight ${cTextMuted} leading-snug`}>
                       Mi laureo in economia e management, per poi tornare alle arti visive con un approccio più strutturato: modellazione, compositing 3D e web design.
@@ -690,7 +703,7 @@ export default function Home() {
                 </FadeIn>
                 <FadeIn delay={500}>
                   <div className="relative pl-8">
-                    <span className={`glow-dot absolute left-0 top-[-1px] w-[18px] h-[18px] rounded-full ${isDark ? 'bg-white' : 'bg-black'}`} style={{ '--glow-rest': '0 0 8px 2px rgba(255,45,107,0.4)', '--glow-peak': '0 0 46px 12px rgba(255,45,107,1)', animationDelay: '1.6s' }} />
+                    <span className={`absolute left-0 top-[-1px] w-[18px] h-[18px] rounded-full ${isDark ? 'bg-white' : 'bg-black'}`} style={{ boxShadow: '0 0 20px 5px rgba(255,45,107,0.55)' }} />
                     <span className={`block text-xs font-semibold uppercase tracking-widest ${cTextMuted} mb-2`}>Oggi</span>
                     <div className={`p-8 md:p-12 rounded-[2rem] ${cCard} border ${cBorder} relative overflow-hidden shadow-sm`}>
                       <p className={`text-xl md:text-3xl ${cTextMain} font-semibold mb-4 md:mb-6 leading-tight tracking-tight`}>Unisco tutto questo in un sistema compatto: visione, tecnica e direzione.</p>
