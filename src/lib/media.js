@@ -80,7 +80,8 @@ export async function uploadMediaFile(file) {
   const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
   const { error } = await supabase.storage.from(STORAGE_BUCKET).upload(fileName, blob, {
     contentType,
-    cacheControl: '3600',
+    // Nome file univoco (timestamp + random) -> contenuto immutabile, cache lunga sicura.
+    cacheControl: '31536000',
   })
   if (error) throw error
   const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(fileName)

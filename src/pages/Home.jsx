@@ -311,7 +311,6 @@ export default function Home() {
   }
 
   const menuItems = [
-    { name: 'Archivio', id: 'projects' },
     { name: 'Servizi', id: 'services' },
     { name: 'Chi sono', id: 'bio' },
     { name: 'Lavora con me', id: 'contact' },
@@ -538,6 +537,7 @@ export default function Home() {
                     <img
                       src={project.img}
                       alt={project.title}
+                      loading={index === 0 ? 'eager' : 'lazy'}
                       className="w-full h-full object-cover transition-transform duration-[1.5s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
                     />
                     <div className="absolute top-4 left-4 md:top-6 md:left-6 px-4 py-2 rounded-full bg-black/40 backdrop-blur-md border border-white/10">
