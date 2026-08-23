@@ -5,6 +5,7 @@ import { useTheme } from '../lib/ThemeContext.jsx'
 import { getTokens } from '../lib/tokens.js'
 import { supabase, isSupabaseReady } from '../lib/supabase.js'
 import { FALLBACK_PROJECTS } from '../lib/useProjects.js'
+import SmartImage from '../components/SmartImage.jsx'
 
 export default function ProgettoDettaglio() {
   const { slug } = useParams()
@@ -82,7 +83,7 @@ export default function ProgettoDettaglio() {
           </button>
         </div>
       ) : (
-        <article className="max-w-[980px] mx-auto px-6 pb-32 md:pb-24">
+        <article className="max-w-[980px] mx-auto px-6 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-24">
           {/* HERO */}
           <header className="pt-14 md:pt-24 pb-10 md:pb-16">
             <p className={`text-xs md:text-sm font-semibold uppercase tracking-widest ${cTextMuted} mb-4`}>{project.category}</p>
@@ -122,7 +123,14 @@ export default function ProgettoDettaglio() {
                   {m.type === 'video' ? (
                     <video src={m.url} controls playsInline muted loop className="w-full h-auto block" />
                   ) : (
-                    <img src={m.url} alt={`${project.title} ${i + 1}`} loading={i === 0 ? 'eager' : 'lazy'} className="w-full h-auto block" />
+                    <SmartImage
+                      src={m.url}
+                      alt={`${project.title} ${i + 1}`}
+                      loading={i === 0 ? 'eager' : 'lazy'}
+                      isDark={isDark}
+                      className="w-full"
+                      imgClassName="w-full h-auto block"
+                    />
                   )}
                   {m.caption ? (
                     <div className={`px-6 py-4 border-t ${cBorder} ${cBgSec}`}>

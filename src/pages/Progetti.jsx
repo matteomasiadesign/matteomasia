@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowUpRight, Sun, Moon, ChevronDown } from 'lucide-react'
 import { useTheme } from '../lib/ThemeContext.jsx'
 import { getTokens } from '../lib/tokens.js'
 import { useProjects } from '../lib/useProjects.js'
+import SmartImage from '../components/SmartImage.jsx'
 
 export default function Progetti() {
   const { toggleTheme, isDark } = useTheme()
@@ -53,7 +54,7 @@ export default function Progetti() {
       </section>
 
       {/* --- GRIGLIA PROGETTI --- */}
-      <section className="max-w-[980px] mx-auto px-6 pb-32 md:pb-24">
+      <section className="max-w-[980px] mx-auto px-6 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-24">
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
             {[0, 1, 2, 3].map((i) => (
@@ -75,11 +76,13 @@ export default function Progetti() {
               >
                 <div className={`w-full aspect-[4/3] rounded-2xl md:rounded-[2rem] overflow-hidden ${cCard} mb-5 relative border ${cBorder} shadow-sm`}>
                   {project.img ? (
-                    <img
+                    <SmartImage
                       src={project.img}
                       alt={project.title}
                       loading="lazy"
-                      className="w-full h-full object-cover transition-transform duration-[1.5s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
+                      isDark={isDark}
+                      className="w-full h-full"
+                      imgClassName="transition-transform duration-[1.5s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
                     />
                   ) : (
                     <div className={`w-full h-full flex items-center justify-center ${cTextMuted} text-sm`}>Nessuna immagine</div>

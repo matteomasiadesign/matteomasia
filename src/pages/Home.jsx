@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowUpRight, ArrowRight, ArrowLeft, Menu, X, CheckCircle2, Copy, Check, MessageCircle, Sun, Moon, Clapperboard } from 'lucide-react'
+import {
+  ArrowUpRight, ArrowRight, ArrowLeft, Menu, X, CheckCircle2, Copy, Check,
+  MessageCircle, Sun, Moon, Clapperboard, Sparkles, Code2, Box, Camera,
+} from 'lucide-react'
 import {
   TbBrandAdobePhotoshop,
   TbBrandAdobeIllustrator,
@@ -16,6 +19,7 @@ import { getTokens } from '../lib/tokens.js'
 import { useProjects } from '../lib/useProjects.js'
 import { useServices } from '../lib/useServices.js'
 import { supabase, isSupabaseReady } from '../lib/supabase.js'
+import SmartImage from '../components/SmartImage.jsx'
 
 // --- COMPONENTE ANIMAZIONE REVEAL ---
 const FadeIn = ({ children, delay = 0, direction = 'up', className = '' }) => {
@@ -32,7 +36,7 @@ const FadeIn = ({ children, delay = 0, direction = 'up', className = '' }) => {
           }
         })
       },
-      { rootMargin: '0px 0px -10% 0px' }
+      { rootMargin: '0px 0px -30px 0px' }
     )
 
     if (domRef.current) observer.observe(domRef.current)
@@ -42,17 +46,22 @@ const FadeIn = ({ children, delay = 0, direction = 'up', className = '' }) => {
   }, [])
 
   const getTransform = () => {
-    if (isVisible) return 'translateY(0) scale(1)'
-    if (direction === 'up') return 'translateY(40px) scale(0.98)'
-    if (direction === 'scale') return 'translateY(0) scale(0.95)'
+    if (isVisible) return 'translateY(0)'
+    if (direction === 'up') return 'translateY(18px)'
+    if (direction === 'scale') return 'scale(0.99)'
     return 'translateY(0)'
   }
 
   return (
     <div
       ref={domRef}
-      className={`transition-all duration-[1000ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${className}`}
-      style={{ opacity: isVisible ? 1 : 0, transform: getTransform(), transitionDelay: `${delay}ms` }}
+      className={`transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${className}`}
+      style={{
+        opacity: isVisible ? 1 : 0,
+        transform: getTransform(),
+        transitionDelay: `${delay}ms`,
+        willChange: 'opacity, transform',
+      }}
     >
       {children}
     </div>
@@ -60,11 +69,11 @@ const FadeIn = ({ children, delay = 0, direction = 'up', className = '' }) => {
 }
 
 // --- COMPONENTE ONDE ANIMATE (ADATTIVE AL TEMA) ---
-const AnimatedNeonWaves = ({ theme }) => {
+const AnimatedNeonWaves = ({ theme, className = '' }) => {
   const isDark = theme === 'dark'
 
   return (
-    <div className={`absolute inset-0 overflow-hidden pointer-events-none z-0 ${isDark ? 'opacity-70 mix-blend-screen' : 'opacity-40 mix-blend-multiply'}`}>
+    <div className={`absolute inset-0 overflow-hidden pointer-events-none z-0 ${isDark ? 'opacity-70 mix-blend-screen' : 'opacity-40 mix-blend-multiply'} ${className}`}>
       <div className={`absolute inset-0 bg-gradient-to-b ${isDark ? 'from-black via-transparent to-black' : 'from-[#f5f5f7] via-transparent to-[#f5f5f7]'} z-10`}></div>
 
       <div className="absolute top-[10%] md:top-[5%] left-0 w-[200%] h-[80vh] blur-[40px] md:blur-[60px]">
@@ -126,6 +135,44 @@ const TbBrandAdobeLightroom = ({ size = 24, className = '', ...props }) => (
     <path d="M13.895 10.579v1.895m0 0v3.315m0 -3.315c.531 -.709 1.026 -1.592 1.894 -1.832q .22 -.062 .474 -.063" />
   </svg>
 )
+
+// Icone contestuali per la Bento Grid dei servizi
+const getServiceIcon = (service, idx) => {
+  const title = (service?.title || '').toLowerCase()
+  if (title.includes('brand') || title.includes('identity')) return Sparkles
+  if (title.includes('web') || title.includes('digital') || title.includes('code') || title.includes('product')) return Code2
+  if (title.includes('3d') || title.includes('motion')) return Box
+  if (title.includes('art') || title.includes('production') || title.includes('video') || title.includes('foto')) return Camera
+  const icons = [Sparkles, Code2, Box, Camera]
+  return icons[idx % icons.length]
+}
+
+// Deliverables / Tags per ciascuna area di servizio
+const getServiceDeliverables = (service, idx) => {
+  if (Array.isArray(service?.deliverables) && service.deliverables.length > 0) {
+    return service.deliverables
+  }
+  const title = (service?.title || '').toLowerCase()
+  if (title.includes('brand') || title.includes('identity')) {
+    return ['Brand System', 'Guidelines', 'Packaging', 'Typography']
+  }
+  if (title.includes('web') || title.includes('digital') || title.includes('product') || title.includes('engineering') || title.includes('code')) {
+    return ['UI/UX Design', 'React & Tailwind', 'Design System', 'SEO']
+  }
+  if (title.includes('3d') || title.includes('motion')) {
+    return ['Blender 3D', 'CGI Visuals', 'Product Mockup', 'Animation']
+  }
+  if (title.includes('art') || title.includes('production') || title.includes('video') || title.includes('foto')) {
+    return ['Fotografia', 'Video Editing', 'Multi-Channel Adv', 'Color Grading']
+  }
+  const list = [
+    ['Brand System', 'Guidelines', 'Packaging', 'Typography'],
+    ['UI/UX Design', 'React & Tailwind', 'Design System', 'SEO'],
+    ['Blender 3D', 'CGI Visuals', 'Product Mockup', 'Animation'],
+    ['Fotografia', 'Video Editing', 'Multi-Channel Adv', 'Color Grading'],
+  ]
+  return list[idx % list.length]
+}
 
 // --- SOFTWARE UTILIZZATI (per il ticker) ---
 const TOOLS = [
@@ -344,26 +391,6 @@ export default function Home() {
           box-shadow: 0 0 0 4px ${isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'};
         }
         .apple-input::placeholder { color: #86868b; }
-        @keyframes timeline-signal {
-          0% { top: -8%; opacity: 0; }
-          15% { opacity: 1; }
-          85% { opacity: 1; }
-          100% { top: 100%; opacity: 0; }
-        }
-        .timeline-signal {
-          animation: timeline-signal 4s linear infinite;
-        }
-        @keyframes spin-slow {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        .card-glow {
-          animation: spin-slow 6s linear infinite;
-        }
-        @keyframes ticker-scroll {
-          from { transform: translateX(0); }
-          to { transform: translateX(-50%); }
-        }
       `}</style>
 
       {/* --- DESKTOP NAVBAR --- */}
@@ -398,14 +425,14 @@ export default function Home() {
       </header>
 
       {/* --- MOBILE: SMART FLOATING ACTION ISLAND --- */}
-      <div className={`md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 p-2 rounded-full ${cGlass} backdrop-blur-2xl shadow-[0_10px_40px_rgba(0,0,0,0.3)] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${showFloatingNav ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-24 opacity-0 scale-90 pointer-events-none'}`}>
-        <button onClick={() => setIsMenuOpen(true)} className={`p-3 rounded-full ${isDark ? 'bg-white/10 text-white' : 'bg-black/5 text-black'} active:scale-90 transition-transform`}>
+      <div className={`md:hidden fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom,0px))] left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 p-2 rounded-full ${cGlass} backdrop-blur-2xl shadow-[0_10px_40px_rgba(0,0,0,0.3)] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${showFloatingNav ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-28 opacity-0 scale-90 pointer-events-none'}`}>
+        <button onClick={() => setIsMenuOpen(true)} aria-label="Menu di navigazione" className={`p-3 rounded-full ${isDark ? 'bg-white/10 text-white' : 'bg-black/5 text-black'} active:scale-90 transition-transform`}>
           <Menu size={22} />
         </button>
-        <button onClick={toggleTheme} className={`p-3 rounded-full ${isDark ? 'bg-white/10 text-white' : 'bg-black/5 text-black'} active:scale-90 transition-transform`}>
+        <button onClick={toggleTheme} aria-label="Cambia tema" className={`p-3 rounded-full ${isDark ? 'bg-white/10 text-white' : 'bg-black/5 text-black'} active:scale-90 transition-transform`}>
           {isDark ? <Sun size={22} /> : <Moon size={22} />}
         </button>
-        <a href="https://wa.me/393495862375" target="_blank" rel="noopener noreferrer" className="p-3 rounded-full bg-[#25D366] text-white active:scale-90 transition-transform shadow-[0_0_15px_rgba(37,211,102,0.4)]">
+        <a href="https://wa.me/393495862375" target="_blank" rel="noopener noreferrer" aria-label="Contattami su WhatsApp" className="p-3 rounded-full bg-[#25D366] text-white active:scale-90 transition-transform shadow-[0_0_15px_rgba(37,211,102,0.4)]">
           <MessageCircle size={22} />
         </a>
       </div>
@@ -414,12 +441,12 @@ export default function Home() {
       <div className={`md:hidden fixed inset-0 z-[70] transition-opacity duration-300 ${isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
         <div className="absolute inset-0" onClick={() => setIsMenuOpen(false)}></div>
 
-        <div className={`absolute bottom-0 left-0 w-full rounded-t-3xl ${cBgSec} p-6 pb-12 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${isMenuOpen ? 'translate-y-0 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]' : 'translate-y-full'}`}>
+        <div className={`absolute bottom-0 left-0 w-full rounded-t-3xl ${cBgSec} p-6 pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))] transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${isMenuOpen ? 'translate-y-0 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]' : 'translate-y-full'}`}>
           <div className="w-12 h-1.5 rounded-full bg-gray-400/30 mx-auto mb-6"></div>
 
           <div className="flex justify-between items-center mb-6">
             <h3 className={`text-xl font-semibold ${cTextMain}`}>Navigazione</h3>
-            <button onClick={() => setIsMenuOpen(false)} className={`p-2 rounded-full ${isDark ? 'bg-white/10 text-white' : 'bg-black/5 text-black'} active:scale-90 transition-transform`}>
+            <button onClick={() => setIsMenuOpen(false)} aria-label="Chiudi menu" className={`p-2 rounded-full ${isDark ? 'bg-white/10 text-white' : 'bg-black/5 text-black'} active:scale-90 transition-transform`}>
               <X size={20} />
             </button>
           </div>
@@ -463,9 +490,14 @@ export default function Home() {
             </h1>
 
             <FadeIn delay={750}>
-              <p className={`text-xl md:text-3xl font-medium ${cTextMuted} max-w-2xl mx-auto tracking-tight leading-tight mb-10 md:mb-14 ${isDark ? 'drop-shadow-md' : ''}`}>
-                Visual & Digital Product Designer — Comunicazione visiva per imprese, progetti ed eventi.
-              </p>
+              <div className="max-w-2xl mx-auto mb-10 md:mb-14 flex flex-col items-center">
+                <p className={`text-xl md:text-3xl font-semibold tracking-tight ${cTextMain} mb-2 md:mb-3`}>
+                  Visual & Digital Product Designer
+                </p>
+                <p className={`text-base md:text-xl font-normal ${cTextMuted} max-w-lg mx-auto tracking-tight leading-relaxed [text-wrap:balance]`}>
+                  Comunicazione visiva per imprese, progetti ed eventi.
+                </p>
+              </div>
             </FadeIn>
 
             <FadeIn delay={1050}>
@@ -526,28 +558,34 @@ export default function Home() {
               <ArrowRight size={20} />
             </button>
 
-            <div
-              ref={carouselRef}
-              onScroll={handleCarouselScroll}
-              className="w-full px-6 md:px-0 md:pl-[calc((100vw-980px)/2)] flex flex-col md:flex-row overflow-y-visible md:overflow-x-auto hide-scrollbar md:snap-x md:snap-mandatory gap-8 pb-4 md:pr-10"
-            >
-              {featured.map((project, index) => {
-                const card = (
-                  <div className={`w-full aspect-[4/3] md:aspect-[16/10] rounded-2xl md:rounded-[2rem] overflow-hidden ${cCard} mb-5 relative border ${cBorder} shadow-sm group`}>
-                    <img
-                      src={project.img}
-                      alt={project.title}
-                      loading={index === 0 ? 'eager' : 'lazy'}
-                      className="w-full h-full object-cover transition-transform duration-[1.5s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
-                    />
-                    <div className="absolute top-4 left-4 md:top-6 md:left-6 px-4 py-2 rounded-full bg-black/40 backdrop-blur-md border border-white/10">
-                      <span className="text-xs font-semibold tracking-widest uppercase text-white">{project.category}</span>
+            <FadeIn delay={100}>
+              <div
+                ref={carouselRef}
+                onScroll={handleCarouselScroll}
+                className="w-full px-6 md:px-0 md:pl-[calc((100vw-980px)/2)] flex flex-col md:flex-row overflow-y-visible md:overflow-x-auto hide-scrollbar md:snap-x md:snap-mandatory gap-8 pb-4 md:pr-10"
+              >
+                {featured.map((project, index) => {
+                  const card = (
+                    <div className={`w-full aspect-[4/3] md:aspect-[16/10] rounded-2xl md:rounded-[2rem] overflow-hidden ${cCard} mb-5 relative border ${cBorder} shadow-sm group`}>
+                      <SmartImage
+                        src={project.img}
+                        alt={project.title}
+                        loading={index === 0 ? 'eager' : 'lazy'}
+                        isDark={isDark}
+                        className="w-full h-full"
+                        imgClassName="transition-transform duration-[1.5s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
+                      />
+                      <div className="absolute top-4 left-4 md:top-6 md:left-6 px-4 py-2 rounded-full bg-black/40 backdrop-blur-md border border-white/10">
+                        <span className="text-xs font-semibold tracking-widest uppercase text-white">{project.category}</span>
+                      </div>
                     </div>
-                  </div>
-                )
-                return (
-                  <FadeIn key={project.id} delay={index * 50} direction="scale" className="w-full md:flex-none md:w-[600px] md:snap-start group cursor-pointer active:scale-[0.98] transition-transform duration-300">
-                    <div onClick={() => navigate(`/progetti/${project.slug || project.id}`)}>
+                  )
+                  return (
+                    <div
+                      key={project.id}
+                      className="w-full md:flex-none md:w-[600px] md:snap-start group cursor-pointer active:scale-[0.98] transition-transform duration-300"
+                      onClick={() => navigate(`/progetti/${project.slug || project.id}`)}
+                    >
                       {card}
                       <div className="flex justify-between items-start px-1">
                         <div>
@@ -559,10 +597,10 @@ export default function Home() {
                         </div>
                       </div>
                     </div>
-                  </FadeIn>
-                )
-              })}
-            </div>
+                  )
+                })}
+              </div>
+            </FadeIn>
           </div>
 
           <div className="max-w-[980px] mx-auto px-6 flex justify-center mt-12 md:mt-16">
@@ -578,141 +616,221 @@ export default function Home() {
           </div>
         </section>
 
-        {/* --- SERVIZI (CARD) --- */}
-        <section id="services" className={`py-24 md:py-40 ${cBgSec} px-6 transition-colors duration-700`}>
-          <div className="max-w-[980px] mx-auto">
+        {/* --- SERVIZI (BENTO GRID) --- */}
+        <section id="services" className={`py-24 md:py-40 ${cBgSec} px-6 transition-colors duration-700 relative overflow-hidden`}>
+          <AnimatedNeonWaves theme={theme} className="opacity-40 md:opacity-55" />
+
+          <div className="max-w-[980px] mx-auto relative z-10">
             <FadeIn>
               <div className="mb-10 md:mb-16">
                 <span className={`block text-xs font-semibold uppercase tracking-widest ${cTextMuted} mb-3`}>Competenze</span>
                 <h2 className="text-3xl md:text-5xl font-semibold tracking-tight mb-3">Servizi.</h2>
-                <p className={`${cTextMuted} text-lg md:text-xl font-medium tracking-tight max-w-xl`}>Quattro aree in cui posso aiutarti per una comunicazione a 360°</p>
+                <p className={`${cTextMuted} text-lg md:text-xl font-medium tracking-tight max-w-xl`}>
+                  Quattro aree strategiche per una comunicazione visiva e digitale completa.
+                </p>
               </div>
             </FadeIn>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-              {services.map((service, idx) => (
-                <FadeIn key={service.id} delay={idx * 100} direction="scale">
-                  <div className="group relative h-full rounded-2xl md:rounded-[2rem]">
-                    <div
-                      aria-hidden="true"
-                      className={`card-glow pointer-events-none absolute -inset-0.5 rounded-2xl md:rounded-[2rem] blur-md opacity-0 transition-opacity duration-500 ${isDark ? 'group-hover:opacity-80' : 'group-hover:opacity-50'}`}
-                      style={{ background: 'conic-gradient(from 0deg, #ff0844, #4facfe, #a18cd1, #ff0844)' }}
-                    />
-                    <div className={`relative z-10 flex flex-col h-full rounded-2xl md:rounded-[2rem] overflow-hidden ${cCard} border ${cBorder} shadow-sm`}>
-                      <div className={`aspect-[16/10] overflow-hidden ${cBgMain} relative`}>
-                        {service.img ? (
-                          <img
-                            src={service.img}
-                            alt={service.title}
-                            loading="lazy"
-                            className="w-full h-full object-cover transition-transform duration-[1.5s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
-                          />
-                        ) : (
-                          <div className={`w-full h-full flex items-center justify-center px-6 text-center ${cTextMuted}`}>
-                            <span className="text-sm font-medium">{service.title}</span>
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-7">
+              {services.map((service, idx) => {
+                const isWide = idx % 4 === 0 || idx % 4 === 3
+                const colSpanClass = isWide ? 'md:col-span-7' : 'md:col-span-5'
+                const itemNumber = String(idx + 1).padStart(2, '0')
+                const ServiceIcon = getServiceIcon(service, idx)
+                const deliverables = getServiceDeliverables(service, idx)
+
+                return (
+                  <FadeIn key={service.id} delay={idx * 80} direction="scale" className={`col-span-1 ${colSpanClass} h-full`}>
+                    <div className="group relative h-full rounded-2xl md:rounded-[2rem]">
+                      {/* Glow soffuso perimetrale esterno */}
+                      <div
+                        aria-hidden="true"
+                        className={`card-glow-rotating pointer-events-none absolute -inset-1 rounded-2xl md:rounded-[2rem] blur-md opacity-0 transition-opacity duration-500 ${isDark ? 'group-hover:opacity-70' : 'group-hover:opacity-40'}`}
+                      />
+                      {/* Bordo luminoso netto e preciso lungo il perimetro */}
+                      <div
+                        aria-hidden="true"
+                        className={`card-glow-rotating pointer-events-none absolute -inset-[1.5px] rounded-2xl md:rounded-[2rem] opacity-0 transition-opacity duration-500 ${isDark ? 'group-hover:opacity-100' : 'group-hover:opacity-80'}`}
+                      />
+                      
+                      {/* Card Container (Frosted Glass) */}
+                      <div className={`relative z-10 flex flex-col justify-between h-full rounded-2xl md:rounded-[2rem] overflow-hidden ${isDark ? 'bg-[#141416]/75' : 'bg-white/80'} backdrop-blur-xl border ${cBorder} shadow-sm p-6 md:p-8 transition-all duration-300`}>
+                        
+                        {/* Contenuto Testuale */}
+                        <div>
+                          <div className="flex items-center justify-between gap-4 mb-5">
+                            <span className={`text-xs font-mono font-bold tracking-wider px-3 py-1 rounded-full ${isDark ? 'bg-white/10 text-white/80' : 'bg-black/5 text-black/70'}`}>
+                              {itemNumber}
+                            </span>
+                            <div className={`w-8 h-8 rounded-full ${isDark ? 'bg-white/5 text-white/70' : 'bg-black/5 text-black/60'} flex items-center justify-center`}>
+                              <ServiceIcon size={15} />
+                            </div>
+                          </div>
+
+                          <h3 className="text-2xl md:text-3xl font-semibold tracking-tight mb-3">
+                            {service.title}
+                          </h3>
+
+                          {service.description && (
+                            <p className={`${cTextMuted} text-sm md:text-base leading-relaxed mb-6 font-normal`}>
+                              {service.description}
+                            </p>
+                          )}
+
+                          {/* Micro-Pillole Deliverables */}
+                          <div className="flex flex-wrap gap-1.5 md:gap-2 mb-6">
+                            {deliverables.map((item) => (
+                              <span
+                                key={item}
+                                className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+                                  isDark
+                                    ? 'bg-white/[0.05] text-white/75 border border-white/[0.08]'
+                                    : 'bg-black/[0.04] text-black/75 border border-black/[0.06]'
+                                }`}
+                              >
+                                {item}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Anteprima Visuale / Immagine (se presente) */}
+                        {service.img && (
+                          <div className={`w-full rounded-xl md:rounded-2xl overflow-hidden mt-auto ${cBgMain} border ${cBorder} ${isWide ? 'aspect-[16/9]' : 'aspect-[16/10]'}`}>
+                            <SmartImage
+                              src={service.img}
+                              alt={service.title}
+                              loading="lazy"
+                              isDark={isDark}
+                              className="w-full h-full"
+                              imgClassName="transition-transform duration-[1.2s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]"
+                            />
                           </div>
                         )}
-                      </div>
-                      <div className="flex flex-col flex-1 p-6 md:p-8">
-                        <h3 className="text-xl md:text-2xl font-semibold tracking-tight mb-2">{service.title}</h3>
-                        {service.description && (
-                          <p className={`${cTextMuted} text-sm md:text-base leading-relaxed mb-6 flex-1`}>{service.description}</p>
-                        )}
-                        {service.cta_link && (
-                          <button
-                            onClick={() => handleServiceCta(service.cta_link)}
-                            className={`group/cta mt-auto self-start flex items-center gap-2 text-sm font-semibold ${cTextMain} ${isDark ? 'hover:text-white' : 'hover:text-black'} active:scale-95 transition-all`}
-                          >
-                            {service.cta_label || 'Scopri di più'}
-                            <ArrowUpRight size={16} className="group-hover/cta:translate-x-0.5 group-hover/cta:-translate-y-0.5 transition-transform" />
-                          </button>
-                        )}
+
                       </div>
                     </div>
-                  </div>
-                </FadeIn>
-              ))}
+                  </FadeIn>
+                )
+              })}
+            </div>
+
+            {/* CTA Contatto Sotto i Servizi */}
+            <div className="max-w-[980px] mx-auto flex justify-center mt-12 md:mt-16">
+              <FadeIn delay={200}>
+                <button
+                  onClick={() => scrollToSection('contact')}
+                  className={`group flex items-center gap-3 px-8 py-4 rounded-full ${cBtnBgPrimary} font-semibold tracking-tight text-base md:text-lg active:scale-95 hover:scale-105 transition-all duration-300 shadow-[0_5px_20px_rgba(0,0,0,0.1)]`}
+                >
+                  Parliamo del tuo progetto
+                  <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                </button>
+              </FadeIn>
             </div>
           </div>
         </section>
 
-        {/* --- BIO --- */}
+        {/* --- BIO & METRICHE --- */}
         <section id="bio" className={`py-24 md:py-40 px-6 ${cBgMain} relative z-10 transition-colors duration-700`}>
-          <div className="max-w-[980px] mx-auto grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-24 md:items-start">
-            <div className="md:col-span-5 md:sticky md:top-28">
-              <FadeIn>
-                <span className={`block text-xs font-semibold uppercase tracking-widest ${cTextMuted} mb-3`}>Chi sono</span>
-                <h2 className="text-4xl md:text-6xl font-semibold tracking-tighter leading-tight mb-4">
-                  Il mio<br /><span className={cTextMuted}>percorso.</span>
-                </h2>
-                <p className={`text-base md:text-lg ${cTextMuted} max-w-xs`}>Dalla fotografia alla produzione audio, fino al design digitale.</p>
-              </FadeIn>
-            </div>
+          <div className="max-w-[980px] mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+              
+              {/* Colonna Sinistra: Filosofia & Narrazione (7 colonne) */}
+              <div className="lg:col-span-7 flex flex-col gap-6">
+                <FadeIn>
+                  <span className={`block text-xs font-semibold uppercase tracking-widest ${cTextMuted} mb-3`}>
+                    Chi sono
+                  </span>
+                  <h2 className="text-4xl md:text-6xl font-semibold tracking-tighter leading-tight mb-4">
+                    Designer,<br />
+                    <span className={cTextMuted}>classe '97.</span>
+                  </h2>
+                </FadeIn>
 
-            <div className="md:col-span-7 relative">
-              {/* Linea verticale del percorso */}
-              <div className={`absolute left-[7px] top-2 bottom-2 w-px ${isDark ? 'bg-white/10' : 'bg-black/10'}`} />
-
-              {/* Segnale luminoso che scorre lungo la linea, sempre in movimento */}
-              <div className="absolute left-[7px] top-2 bottom-2 w-px overflow-visible pointer-events-none">
-                <span
-                  className="timeline-signal absolute left-1/2 -translate-x-1/2 w-[3px] h-[70px] rounded-full"
-                  style={{
-                    top: '-8%',
-                    background: 'linear-gradient(to bottom, transparent, #ff2d6b 45%, #ff8a5c 55%, transparent)',
-                    boxShadow: '0 0 14px 3px rgba(255,45,107,0.6)',
-                  }}
-                />
-              </div>
-
-              <div className="flex flex-col gap-8 md:gap-10">
                 <FadeIn delay={100}>
-                  <div className="relative pl-8">
-                    <span className="absolute left-0 top-[2px] w-[15px] h-[15px] rounded-full bg-[#ff2d6b]/20" style={{ boxShadow: '0 0 8px 2px rgba(255,45,107,0.3)' }} />
-                    <span className={`block text-xs font-semibold uppercase tracking-widest ${cTextMuted} mb-2`}>Il primo amore</span>
-                    <p className={`text-lg md:text-2xl font-medium tracking-tight ${cTextMuted} leading-snug`}>
-                      Visual e Web Designer, classe '97, nato in <strong className={cTextMain}>Sardegna</strong>. Inizio il mio percorso nelle arti visive con la fotografia.
+                  <div className={`space-y-4 text-base md:text-lg ${cTextMuted} leading-relaxed font-normal`}>
+                    <p>
+                      Nato in <strong className={cTextMain}>Sardegna</strong>, inizio il mio percorso nelle arti visive attraverso la fotografia. Negli anni ho espanso questo linguaggio collaborando con diversi artisti, sviluppando competenze trasversali in videomaking, post-produzione, grafica e direzione multimediale.
+                    </p>
+                    <p>
+                      Nel <strong className={cTextMain}>2023</strong> conseguo la laurea in <strong className={cTextMain}>Economia e Management</strong>, tornando al mondo visivo con un approccio più strutturato, strategico e orientato al business: dal 3D modeling al web design e front-end engineering.
                     </p>
                   </div>
                 </FadeIn>
+
                 <FadeIn delay={200}>
-                  <div className="relative pl-8">
-                    <span className="absolute left-0 top-[2px] w-[15px] h-[15px] rounded-full bg-[#ff2d6b]/35" style={{ boxShadow: '0 0 11px 3px rgba(255,45,107,0.4)' }} />
-                    <span className={`block text-xs font-semibold uppercase tracking-widest ${cTextMuted} mb-2`}>Nuovi linguaggi</span>
-                    <p className={`text-lg md:text-2xl font-medium tracking-tight ${cTextMuted} leading-snug`}>
-                      Espando il mio linguaggio collaborando con altri artisti, sviluppando competenze in videomaking, editing e grafica vettoriale.
+                  <div className={`p-8 md:p-10 rounded-2xl md:rounded-[2rem] ${isDark ? 'bg-[#141416]/80' : 'bg-white/90'} backdrop-blur-xl border ${cBorder} shadow-sm mt-4`}>
+                    <p className={`text-xl md:text-2xl ${cTextMain} font-semibold mb-3 leading-snug tracking-tight`}>
+                      Unisco tutto questo in un sistema compatto: visione, tecnica e direzione.
                     </p>
-                  </div>
-                </FadeIn>
-                <FadeIn delay={300}>
-                  <div className="relative pl-8">
-                    <span className="absolute left-0 top-[2px] w-[15px] h-[15px] rounded-full bg-[#ff2d6b]/50" style={{ boxShadow: '0 0 14px 3px rgba(255,45,107,0.45)' }} />
-                    <span className={`block text-xs font-semibold uppercase tracking-widest ${cTextMuted} mb-2`}>Produzione audio</span>
-                    <p className={`text-lg md:text-2xl font-medium tracking-tight ${cTextMuted} leading-snug`}>
-                      Mi dedico alla produzione audio, realizzando oltre 100 strumentali ed entrando nella sezione producer di <strong className={cTextMain}>HONIRO</strong>.
+                    <p className={`text-sm md:text-base ${cTextMuted} leading-relaxed`}>
+                      Un mix diretto, progettato per comunicare. Posso aiutarti a strutturare una comunicazione efficace e multi-piattaforma per il tuo business, progetto o evento.
                     </p>
-                  </div>
-                </FadeIn>
-                <FadeIn delay={400}>
-                  <div className="relative pl-8">
-                    <span className="absolute left-0 top-[2px] w-[15px] h-[15px] rounded-full bg-[#ff2d6b]/65" style={{ boxShadow: '0 0 17px 4px rgba(255,45,107,0.5)' }} />
-                    <span className={`block text-xs font-semibold uppercase tracking-widest ${cTextMuted} mb-2`}>Nuova direzione</span>
-                    <p className={`text-lg md:text-2xl font-medium tracking-tight ${cTextMuted} leading-snug`}>
-                      Mi laureo in economia e management, per poi tornare alle arti visive con un approccio più strutturato: modellazione, compositing 3D e web design.
-                    </p>
-                  </div>
-                </FadeIn>
-                <FadeIn delay={500}>
-                  <div className="relative pl-8">
-                    <span className={`absolute left-0 top-[-1px] w-[18px] h-[18px] rounded-full ${isDark ? 'bg-white' : 'bg-black'}`} style={{ boxShadow: '0 0 20px 5px rgba(255,45,107,0.55)' }} />
-                    <span className={`block text-xs font-semibold uppercase tracking-widest ${cTextMuted} mb-2`}>Oggi</span>
-                    <div className={`p-8 md:p-12 rounded-[2rem] ${cCard} border ${cBorder} relative overflow-hidden shadow-sm`}>
-                      <p className={`text-xl md:text-3xl ${cTextMain} font-semibold mb-4 md:mb-6 leading-tight tracking-tight`}>Unisco tutto questo in un sistema compatto: visione, tecnica e direzione.</p>
-                      <p className={`text-base md:text-lg ${cTextMuted}`}>Un mix diretto, progettato per comunicare. Posso aiutarti a strutturare una comunicazione efficace e multi-piattaforma per il tuo business, progetto o evento.</p>
-                    </div>
                   </div>
                 </FadeIn>
               </div>
+
+              {/* Colonna Destra: Highlight Cards (5 colonne) */}
+              <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4 lg:sticky lg:top-28">
+                
+                {/* Highlight 1: Background Business */}
+                <FadeIn delay={150}>
+                  <div className={`p-6 rounded-2xl md:rounded-3xl ${isDark ? 'bg-white/[0.03]' : 'bg-black/[0.02]'} border ${cBorder} transition-all duration-300 hover:${isDark ? 'bg-white/[0.06]' : 'bg-black/[0.04]'}`}>
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <span className={`text-[11px] font-mono font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${isDark ? 'bg-white/10 text-white/90' : 'bg-black/5 text-black/80'}`}>
+                        Business Mindset
+                      </span>
+                      <span className={`text-xs ${cTextMuted} font-mono`}>2023</span>
+                    </div>
+                    <div className="text-2xl md:text-3xl font-semibold tracking-tight mb-1">
+                      Laurea B.Sc.
+                    </div>
+                    <p className={`text-xs md:text-sm ${cTextMuted} leading-relaxed`}>
+                      Economia & Management: pensiero analitico e strategico applicato al posizionamento e agli obiettivi reali del brand.
+                    </p>
+                  </div>
+                </FadeIn>
+
+                {/* Highlight 2: Full-Stack & 3D */}
+                <FadeIn delay={250}>
+                  <div className={`p-6 rounded-2xl md:rounded-3xl ${isDark ? 'bg-white/[0.03]' : 'bg-black/[0.02]'} border ${cBorder} transition-all duration-300 hover:${isDark ? 'bg-white/[0.06]' : 'bg-black/[0.04]'}`}>
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <span className={`text-[11px] font-mono font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${isDark ? 'bg-white/10 text-white/90' : 'bg-black/5 text-black/80'}`}>
+                        Design + Code
+                      </span>
+                      <span className={`text-xs ${cTextMuted} font-mono`}>Full-Stack</span>
+                    </div>
+                    <div className="text-2xl md:text-3xl font-semibold tracking-tight mb-1">
+                      End-to-End
+                    </div>
+                    <p className={`text-xs md:text-sm ${cTextMuted} leading-relaxed`}>
+                      Dall'identità visiva e 3D fino allo sviluppo front-end moderno: un unico riferimento per l'intero ecosistema digitale.
+                    </p>
+                  </div>
+                </FadeIn>
+
+                {/* Highlight 3: Localizzazione & Disponibilità */}
+                <FadeIn delay={350}>
+                  <div className={`p-5 rounded-2xl md:rounded-3xl ${isDark ? 'bg-white/[0.03]' : 'bg-black/[0.02]'} border ${cBorder} flex items-center justify-between gap-4`}>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="text-xs font-semibold uppercase tracking-wider">Disponibile</span>
+                      </div>
+                      <p className={`text-xs ${cTextMuted}`}>Porto Torres, Sardegna · Remoto & On-site</p>
+                    </div>
+                    <button
+                      onClick={() => scrollToSection('contact')}
+                      aria-label="Contattami"
+                      className={`w-9 h-9 rounded-full ${cCard} border ${cBorder} flex items-center justify-center shrink-0 ${isDark ? 'hover:bg-white hover:text-black' : 'hover:bg-black hover:text-white'} transition-colors duration-300`}
+                    >
+                      <ArrowUpRight size={16} />
+                    </button>
+                  </div>
+                </FadeIn>
+
+              </div>
+
             </div>
           </div>
         </section>

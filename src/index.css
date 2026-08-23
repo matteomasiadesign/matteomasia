@@ -24,6 +24,32 @@ body {
   animation: hero-word-reveal 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@property --card-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes rotate-card-border {
+  0% {
+    --card-angle: 0deg;
+  }
+  100% {
+    --card-angle: 360deg;
+  }
+}
+
+.card-glow-rotating {
+  --card-angle: 0deg;
+  background: conic-gradient(from var(--card-angle), #ff0844, #4facfe, #a18cd1, #ff0844);
+  animation: rotate-card-border 4s linear infinite;
+}
+
 /* Accessibilità: chi ha "Riduci movimento" attivo non vede le animazioni
    infinite di sfondo (le onde), ma le dissolvenze in entrata restano,
    perché sono brevi e non disturbano. */
@@ -43,4 +69,8 @@ body {
     animation-duration: 4s !important;
     animation-iteration-count: infinite !important;
   }
+  .card-glow-rotating {
+    animation: none !important;
+  }
 }
+
