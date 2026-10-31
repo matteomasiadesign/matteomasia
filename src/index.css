@@ -3,19 +3,222 @@
 @tailwind utilities;
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Titoli in Doto, sempre al peso pieno (i puntini sottili non si leggono)
+   e senza spaziatura negativa, che farebbe toccare i puntini tra le lettere.
+   !important perché valga anche sopra le classi font-* e tracking-* dei titoli. */
+h1, h2, h3, .font-display {
+  font-family: 'Doto', ui-monospace, monospace !important;
+  font-weight: 900 !important;
+  letter-spacing: 0 !important;
+}
+
+/* --- GRIGLIA ---
+   Un'unica griglia per tutto il sito: 12 colonne fino a 1440px, margini fluidi */
+:root { --gutter: clamp(16px, 4vw, 64px); }
+.wrap { width: 100%; max-width: 1440px; margin-inline: auto; padding-inline: var(--gutter); }
+.grid-12 { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: clamp(12px, 1.6vw, 24px); }
+.section-y { padding-block: clamp(5rem, 10vw, 10rem); }
+
+/* --- FOCUS DA TASTIERA ---
+   Contorno rosso sulle sezioni scure, nero su quelle rosse */
+:focus-visible { outline: 3px solid #ff2b1c; outline-offset: 3px; }
+.hero-red :focus-visible, .punk-red :focus-visible, .menu-panel :focus-visible { outline-color: #000; }
+.hero-btn:focus-visible { background: #000; color: #ff2b1c; }
+.hero-btn-red:focus-visible { background: #ff2b1c; color: #000; }
+/* Campi del form: il focus è la linea sotto che diventa piena */
+.field:focus-visible { outline: none; }
+
+/* Navbar a pillola: movimento a molla (solo transform e opacity) e colori che
+   sfumano quando cambia la sezione sotto. Senza linear() resta una curva morbida. */
+.nav-spring {
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
+  will-change: transform, opacity;
+}
+@supports (transition-timing-function: linear(0, 1)) {
+  .nav-spring {
+    transition-timing-function: linear(0, 0.047, 0.156, 0.294, 0.436, 0.569, 0.685, 0.781, 0.857, 0.914, 0.956, 0.984, 1.003, 1.013, 1.018, 1.02, 1.019, 1.017, 1.014, 1.011, 1.009, 1.006, 1.004, 1.003, 1), ease;
+    transition-duration: 0.7s, 0.35s;
+  }
+}
+.nav-ink { transition: color 0.45s ease; }
+.nav-fade { transition: opacity 0.45s ease; }
+
+/* --- MENU "+" ---
+   Le voci entrano a cascata quando il pannello si è aperto */
+.menu-item {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.menu-open .menu-item {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: calc(0.22s + var(--i, 0) * 0.05s);
+}
+
+/* --- TITOLO DELLA HERO CHE SI FA FUMO --- */
+.smoke-letter { display: inline-block; }
+
+/* --- CHI SONO: punti di aggancio per lo scroll a dito ---
+   Con la rotella lo scatto lo gestisce il componente; sui touch il browser */
+@media (pointer: coarse) {
+  html { scroll-snap-type: y proximity; }
+  .about-snap { scroll-snap-align: start; }
 }
 
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-@keyframes wave-slide { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-@keyframes wave-breathe { 0%, 100% { transform: scaleY(1) translateY(0); } 50% { transform: scaleY(1.3) translateY(5%); } }
-
 @keyframes hero-word-reveal {
   from { opacity: 0; filter: blur(14px); transform: translateY(16px); }
   to { opacity: 1; filter: blur(0); transform: translateY(0); }
+}
+
+/* --- HERO: rosso pieno, testi neri, titolo in Doto, bottoni a cornice --- */
+.hero-red { background: #ff2b1c; }
+.hero-red ::selection { background: #000; color: #ff2b1c; }
+.hero-btn:hover { background: #000; color: #ff2b1c; }
+/* Stesso bottone a cornice sulle sezioni nere: rosso su nero, in hover si riempie */
+.hero-btn-red:hover { background: #ff2b1c; color: #000; }
+
+/* --- SERVIZI "DIGITAL PUNK" --- */
+/* Rosso della hero con un retino di puntini appena percettibile */
+.punk-red {
+  background-color: #ff2b1c;
+  background-image: radial-gradient(rgba(0, 0, 0, 0.13) 1px, transparent 1.3px);
+  background-size: 6px 6px;
+}
+.punk-red ::selection { background: #000; color: #ff2b1c; }
+
+.punk-marquee { animation: ticker-scroll 22s linear infinite; }
+
+@keyframes punk-blink { 50% { opacity: 0; } }
+.punk-blink { animation: punk-blink 1s steps(1) infinite; }
+
+/* Ombra piena e dura, come un adesivo */
+.punk-shadow { box-shadow: 6px 6px 0 #000; transition: box-shadow 0.2s, transform 0.2s, background-color 0.2s, color 0.2s; }
+.punk-shadow:hover { box-shadow: 9px 9px 0 #000; transform: translate(-3px, -3px); }
+
+/* Riga dell'elenco: in hover si inverte (nero e rosso) e il titolo fa un glitch */
+.punk-row { transition: background-color 0.15s, color 0.15s; }
+.punk-row:hover, .punk-row:focus-visible { background: #000; color: #ff2b1c; outline: none; }
+@keyframes punk-glitch {
+  0% { transform: translate(0); text-shadow: none; }
+  20% { transform: translate(-3px, 1px); text-shadow: 3px 0 #fff, -3px 0 #7a0000; }
+  40% { transform: translate(3px, -1px); text-shadow: -3px 0 #fff, 3px 0 #7a0000; }
+  60% { transform: translate(-1px, 0); text-shadow: 2px 0 #fff; }
+  100% { transform: translate(0); text-shadow: none; }
+}
+.punk-row:hover .punk-row-title,
+.punk-row:focus-visible .punk-row-title { animation: punk-glitch 0.26s steps(1) 1; }
+
+/* --- CHI SONO: LA STANZA ROSSA --- */
+/* Tende sul fondo (il velluto è un SVG dentro): buio in alto e in basso */
+.lynch-drapes {
+  background: #3a0309;
+  transform-origin: top center;
+  animation: lynch-sway 11s ease-in-out infinite alternate;
+}
+/* Le pieghe respirano appena, come mosse da un'aria che non c'è */
+@keyframes lynch-sway {
+  from { transform: scaleX(1) skewX(0deg); }
+  to { transform: scaleX(1.02) skewX(0.6deg); }
+}
+/* Sipario davanti (velluto SVG dentro), più scuro ai bordi */
+.lynch-curtain {
+  background: #3a0309;
+  box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.7);
+  will-change: transform;
+}
+/* Ombra in alto e in basso su tende e sipario, come sotto una luce dall'alto */
+.lynch-drapes::after,
+.lynch-curtain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0) 62%, rgba(0, 0, 0, 0.8));
+}
+/* Pozza di buio dietro le didascalie */
+.lynch-scrim { background: radial-gradient(ellipse 46% 34% at 50% 50%, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.35) 60%, rgba(0, 0, 0, 0) 100%); }
+/* Pavimento a zig-zag bianco e nero, che si perde nel buio verso il fondo */
+.lynch-floor {
+  background:
+    linear-gradient(135deg, #e9e2d0 25%, transparent 25%) -45px 0,
+    linear-gradient(225deg, #e9e2d0 25%, transparent 25%) -45px 0,
+    linear-gradient(315deg, #e9e2d0 25%, transparent 25%),
+    linear-gradient(45deg, #e9e2d0 25%, transparent 25%);
+  background-size: 90px 90px;
+  background-color: #0b0b0b;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.35) 12%, #000 40%);
+  mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.35) 12%, #000 40%);
+  will-change: transform;
+}
+/* Luce calda dall'alto che tremola come una lampada difettosa */
+.lynch-light {
+  background:
+    radial-gradient(ellipse 38% 50% at 50% 34%, rgba(255, 222, 170, 0.2), rgba(255, 222, 170, 0) 70%),
+    radial-gradient(ellipse 70% 60% at 50% 45%, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.55) 100%);
+  animation: lynch-flicker 7s steps(1) infinite;
+}
+@keyframes lynch-flicker {
+  0%, 100% { opacity: 1; }
+  3% { opacity: 0.55; }
+  4% { opacity: 1; }
+  41% { opacity: 1; }
+  42% { opacity: 0.7; }
+  43% { opacity: 0.95; }
+  44% { opacity: 0.6; }
+  45% { opacity: 1; }
+  78% { opacity: 1; }
+  79% { opacity: 0.4; }
+  81% { opacity: 1; }
+}
+.lynch-flicker { animation: lynch-flicker 5s steps(1) infinite; }
+/* Grana di pellicola che salta a ogni fotogramma.
+   Il livello sborda solo del 7% per lato (prima era il doppio dello schermo,
+   ~4 volte l'area da tenere in memoria sulla GPU); gli scatti sono gli stessi
+   in pixel di prima: 6% della larghezza / altezza al massimo, cioè 6/1.14 ≈ 5.26%
+   della grana stessa. */
+.lynch-grain {
+  inset: -7%;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  opacity: 0.14;
+  mix-blend-mode: overlay;
+  animation: lynch-grain 0.8s steps(6) infinite;
+}
+@keyframes lynch-grain {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(-5.26%, 3.51%); }
+  40% { transform: translate(3.51%, -5.26%); }
+  60% { transform: translate(-3.51%, -1.75%); }
+  80% { transform: translate(5.26%, 3.51%); }
+  100% { transform: translate(0, 0); }
+}
+/* Nella hero la grana è più leggera, e si ferma quando la hero è fuori schermo */
+.hero-grain { opacity: 0.09; z-index: 1; }
+.hero-idle .hero-grain { animation-play-state: paused; }
+/* Sezione lontana dallo schermo: animazioni infinite in pausa */
+.lynch-idle * { animation-play-state: paused !important; }
+.lynch-vignette { background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, 0.88) 100%); }
+/* Testo leggibile sopra velluto e pavimento: alone scuro morbido */
+.lynch-glow { text-shadow: 0 0 28px rgba(0, 0, 0, 0.95), 0 0 6px rgba(0, 0, 0, 0.9); }
+
+/* Pannello laterale */
+.punk-panel { transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
+.punk-btn-fill:hover { background: #fff; border-color: #fff; color: #000; }
+/* Sfumatura "scrim" con curva morbida: niente banda scura netta tra rosso e nero */
+.hero-fade {
+  background: linear-gradient(to bottom,
+    rgba(0,0,0,0) 0%, rgba(0,0,0,.013) 8%, rgba(0,0,0,.049) 15%, rgba(0,0,0,.104) 23%,
+    rgba(0,0,0,.175) 31%, rgba(0,0,0,.259) 39%, rgba(0,0,0,.352) 47%, rgba(0,0,0,.45) 55%,
+    rgba(0,0,0,.55) 63%, rgba(0,0,0,.648) 71%, rgba(0,0,0,.741) 79%, rgba(0,0,0,.825) 86%,
+    rgba(0,0,0,.896) 92%, rgba(0,0,0,.951) 96%, rgba(0,0,0,.987) 99%, #000 100%);
 }
 
 .hero-reveal-word {
@@ -24,34 +227,48 @@ body {
   animation: hero-word-reveal 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* --- CAROSELLO PROGETTI: luce di sfondo, grana e cambio didascalia --- */
+/* Aura rossa dietro le card, lo stesso rosso della hero: un nucleo più
+   intenso dietro la card attiva e un alone largo che si spegne nel nero */
+.slides-dark .slides-light-source {
+  background:
+    radial-gradient(ellipse 32% 38% at 58% 52%, rgba(255, 43, 28, 0.38), rgba(255, 43, 28, 0) 70%),
+    radial-gradient(ellipse 60% 70% at 58% 52%, rgba(255, 43, 28, 0.16), rgba(255, 43, 28, 0) 72%),
+    #000;
+  animation: slides-aura-breathe 9s ease-in-out infinite;
+}
+@media (max-width: 767px) {
+  .slides-dark .slides-light-source {
+    background:
+      radial-gradient(ellipse 55% 30% at 50% 58%, rgba(255, 43, 28, 0.38), rgba(255, 43, 28, 0) 70%),
+      radial-gradient(ellipse 90% 55% at 50% 58%, rgba(255, 43, 28, 0.16), rgba(255, 43, 28, 0) 72%),
+      #000;
+  }
+}
+/* Respiro lento dell'aura: solo opacity e transform, niente ridisegno */
+@keyframes slides-aura-breathe {
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.06); }
+}
+.slides-grain {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  opacity: 0.07;
+  mix-blend-mode: overlay;
+}
+
+@keyframes slides-swap-in {
+  from { opacity: 0; transform: translateY(40%); }
+  to { opacity: 1; transform: none; }
+}
+.slides-swap { animation: slides-swap-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
 @keyframes ticker-scroll {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
 }
 
-@property --card-angle {
-  syntax: '<angle>';
-  initial-value: 0deg;
-  inherits: false;
-}
-
-@keyframes rotate-card-border {
-  0% {
-    --card-angle: 0deg;
-  }
-  100% {
-    --card-angle: 360deg;
-  }
-}
-
-.card-glow-rotating {
-  --card-angle: 0deg;
-  background: conic-gradient(from var(--card-angle), #ff0844, #4facfe, #a18cd1, #ff0844);
-  animation: rotate-card-border 4s linear infinite;
-}
-
 /* Accessibilità: chi ha "Riduci movimento" attivo non vede le animazioni
-   infinite di sfondo (le onde), ma le dissolvenze in entrata restano,
+   infinite (ticker e marquee compresi), ma le dissolvenze in entrata restano,
    perché sono brevi e non disturbano. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -60,17 +277,6 @@ body {
   }
   .hero-reveal-word {
     animation-duration: 1s !important;
-  }
-  .ticker-scroll-track {
-    animation-duration: 32s !important;
-    animation-iteration-count: infinite !important;
-  }
-  .timeline-signal {
-    animation-duration: 4s !important;
-    animation-iteration-count: infinite !important;
-  }
-  .card-glow-rotating {
-    animation: none !important;
   }
 }
 

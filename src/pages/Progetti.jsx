@@ -1,13 +1,13 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, ArrowUpRight, Sun, Moon, ChevronDown } from 'lucide-react'
+import { ArrowLeft, ArrowUpRight, ChevronDown } from 'lucide-react'
 import { useTheme } from '../lib/ThemeContext.jsx'
 import { getTokens } from '../lib/tokens.js'
 import { useProjects } from '../lib/useProjects.js'
 import SmartImage from '../components/SmartImage.jsx'
 
 export default function Progetti() {
-  const { toggleTheme, isDark } = useTheme()
+  const { isDark } = useTheme()
   const navigate = useNavigate()
   const { projects, loading } = useProjects()
 
@@ -27,7 +27,7 @@ export default function Progetti() {
   }
 
   return (
-    <div className={`min-h-screen w-full ${cBgMain} ${cTextMain} font-sans selection:bg-blue-500 selection:text-white`}>
+    <div className={`min-h-screen w-full ${cBgMain} ${cTextMain} font-sans selection:bg-[#ff2b1c] selection:text-black`}>
       {/* --- HEADER --- */}
       <header className={`sticky top-0 z-50 ${cGlass} backdrop-blur-xl border-b ${cBorder}`}>
         <div className="max-w-[980px] mx-auto px-6 py-4 flex items-center justify-between">
@@ -39,9 +39,7 @@ export default function Progetti() {
             Home
           </button>
           <div className="text-lg font-semibold tracking-tight">Progetti</div>
-          <button onClick={toggleTheme} className={`p-2 rounded-full ${isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/10 text-black'} transition-colors active:scale-90`}>
-            {isDark ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
+          <span className="w-9" aria-hidden="true" />
         </div>
       </header>
 

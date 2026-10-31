@@ -1,9 +1,12 @@
-import React, { Suspense, lazy } from 'react'
+import React, { Suspense, lazy, useLayoutEffect } from 'react'
 import ReactDOM from 'react-dom/client'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { ThemeProvider } from './lib/ThemeContext.jsx'
+import { startSmoothScroll, scrollToTarget } from './lib/smoothScroll.js'
 import Home from './pages/Home.jsx'
 import './index.css'
+
+startSmoothScroll()
 
 // Home resta nel bundle principale (è la pagina di atterraggio); le altre
 // route vengono scaricate solo quando servono, cosi' i visitatori della
@@ -12,14 +15,24 @@ const Progetti = lazy(() => import('./pages/Progetti.jsx'))
 const ProgettoDettaglio = lazy(() => import('./pages/ProgettoDettaglio.jsx'))
 const Admin = lazy(() => import('./pages/Admin.jsx'))
 
-// Sfondo di attesa coerente col tema salvato, per evitare un flash bianco
+// Sfondo di attesa nero come il tema, per evitare un flash bianco
 // mentre il chunk della route richiesta viene scaricato.
-const initialBg = localStorage.getItem('theme') === 'silver' ? '#f5f5f7' : '#000'
+const initialBg = '#000'
+
+// A ogni cambio di pagina si riparte dall'alto (con un #ancora ci pensa la pagina)
+function ScrollToTop() {
+  const { pathname, hash } = useLocation()
+  useLayoutEffect(() => {
+    if (!hash) scrollToTarget(0, { immediate: true })
+  }, [pathname]) // eslint-disable-line react-hooks/exhaustive-deps
+  return null
+}
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ThemeProvider>
       <BrowserRouter>
+        <ScrollToTop />
         <Suspense fallback={<div style={{ minHeight: '100vh', background: initialBg }} />}>
           <Routes>
             <Route path="/" element={<Home />} />

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Sun, Moon, ArrowUpRight, Loader2, Instagram } from 'lucide-react'
+import { ArrowLeft, ArrowUpRight, Loader2, Instagram } from 'lucide-react'
 import { useTheme } from '../lib/ThemeContext.jsx'
 import { getTokens } from '../lib/tokens.js'
 import { supabase, isSupabaseReady } from '../lib/supabase.js'
@@ -9,7 +9,7 @@ import SmartImage from '../components/SmartImage.jsx'
 
 export default function ProgettoDettaglio() {
   const { slug } = useParams()
-  const { toggleTheme, isDark } = useTheme()
+  const { isDark } = useTheme()
   const navigate = useNavigate()
   const t = getTokens(isDark)
   const { cBgMain, cBgSec, cTextMain, cTextMuted, cBorder, cCard, cGlass } = t
@@ -60,15 +60,13 @@ export default function ProgettoDettaglio() {
       : []
 
   return (
-    <div className={`min-h-screen w-full ${cBgMain} ${cTextMain} font-sans selection:bg-blue-500 selection:text-white`}>
+    <div className={`min-h-screen w-full ${cBgMain} ${cTextMain} font-sans selection:bg-[#ff2b1c] selection:text-black`}>
       <header className={`sticky top-0 z-50 ${cGlass} backdrop-blur-xl border-b ${cBorder}`}>
         <div className="max-w-[980px] mx-auto px-6 py-4 flex items-center justify-between">
           <button onClick={() => navigate('/progetti')} className={`group flex items-center gap-2 text-sm font-medium ${cTextMuted} ${isDark ? 'hover:text-white' : 'hover:text-black'} transition-colors active:scale-95`}>
             <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" /> Progetti
           </button>
-          <button onClick={toggleTheme} className={`p-2 rounded-full ${isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/10 text-black'} transition-colors active:scale-90`}>
-            {isDark ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
+          <span className="w-9" aria-hidden="true" />
         </div>
       </header>
 

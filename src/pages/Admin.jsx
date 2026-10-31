@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  ArrowLeft, Sun, Moon, Plus, Pencil, Trash2, LogOut, X, Save, Upload, Loader2,
+  ArrowLeft, Plus, Pencil, Trash2, LogOut, X, Save, Upload, Loader2,
   AlertTriangle, Star, Film, GripVertical, Inbox, FolderOpen, Mail, MailOpen, Reply,
   Layers, Image as ImageIcon,
 } from 'lucide-react'
@@ -31,7 +31,7 @@ const SVC_EMPTY_FORM = {
 }
 
 export default function Admin() {
-  const { toggleTheme, isDark } = useTheme()
+  const { isDark } = useTheme()
   const navigate = useNavigate()
   const t = getTokens(isDark)
   const { cBgMain, cBgSec, cTextMain, cTextMuted, cBorder, cCard, cBtnBgPrimary } = t
@@ -338,7 +338,7 @@ export default function Admin() {
   // --- GUARDIE ---
   if (!isSupabaseReady) {
     return (
-      <Shell {...{ isDark, t, navigate, toggleTheme }} title="Admin">
+      <Shell {...{ isDark, t, navigate }} title="Admin">
         <div className={`max-w-md mx-auto mt-20 p-8 rounded-3xl ${cCard} border ${cBorder} text-center`}>
           <AlertTriangle size={40} className="mx-auto mb-4 text-amber-500" />
           <h2 className={`text-xl font-semibold mb-2 ${cTextMain}`}>Supabase non configurato</h2>
@@ -348,11 +348,11 @@ export default function Admin() {
     )
   }
   if (authLoading) {
-    return <Shell {...{ isDark, t, navigate, toggleTheme }} title="Admin"><div className="flex justify-center mt-24"><Loader2 size={28} className={`animate-spin ${cTextMuted}`} /></div></Shell>
+    return <Shell {...{ isDark, t, navigate }} title="Admin"><div className="flex justify-center mt-24"><Loader2 size={28} className={`animate-spin ${cTextMuted}`} /></div></Shell>
   }
   if (!session) {
     return (
-      <Shell {...{ isDark, t, navigate, toggleTheme }} title="Admin">
+      <Shell {...{ isDark, t, navigate }} title="Admin">
         <form onSubmit={handleLogin} className={`max-w-sm mx-auto mt-20 p-8 rounded-3xl ${cCard} border ${cBorder} flex flex-col gap-4`}>
           <h2 className={`text-2xl font-semibold ${cTextMain} mb-2`}>Accesso</h2>
           <input type="email" placeholder="Email" value={email} required onChange={(e) => setEmail(e.target.value)} className={inp} />
@@ -368,7 +368,7 @@ export default function Admin() {
 
   // --- DASHBOARD ---
   return (
-    <Shell {...{ isDark, t, navigate, toggleTheme }} title="Admin" onLogout={handleLogout}>
+    <Shell {...{ isDark, t, navigate }} title="Admin" onLogout={handleLogout}>
       {/* Switch vista */}
       <div className={`inline-flex p-1 rounded-full ${cCard} border ${cBorder} mb-8`}>
         <TabBtn active={view === 'progetti'} onClick={() => setView('progetti')} isDark={isDark}><FolderOpen size={16} /> Progetti</TabBtn>
@@ -699,7 +699,7 @@ function TabBtn({ active, onClick, isDark, children }) {
   )
 }
 
-function Shell({ children, isDark, t, navigate, toggleTheme, title, onLogout }) {
+function Shell({ children, isDark, t, navigate, title, onLogout }) {
   const { cBgMain, cTextMain, cTextMuted, cBorder, cGlass } = t
   return (
     <div className={`min-h-screen w-full ${cBgMain} ${cTextMain} font-sans`}>
@@ -710,9 +710,7 @@ function Shell({ children, isDark, t, navigate, toggleTheme, title, onLogout }) 
           </button>
           <div className="text-lg font-semibold tracking-tight">{title}</div>
           <div className="flex items-center gap-1">
-            <button onClick={toggleTheme} className={`p-2 rounded-full ${isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/10 text-black'} transition-colors active:scale-90`}>
-              {isDark ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
+            <span className="w-9" aria-hidden="true" />
             {onLogout && <button onClick={onLogout} className={`p-2 rounded-full ${isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/10 text-black'} transition-colors active:scale-90`}><LogOut size={20} /></button>}
           </div>
         </div>
@@ -723,5 +721,5 @@ function Shell({ children, isDark, t, navigate, toggleTheme, title, onLogout }) 
 }
 
 function Field({ label, children }) {
-  return (<div><label className="text-xs font-semibold uppercase tracking-wider text-[#86868b] block mb-2">{label}</label>{children}</div>)
+  return (<div><label className="text-xs font-semibold uppercase tracking-wider text-[#a1a1a6] block mb-2">{label}</label>{children}</div>)
 }
