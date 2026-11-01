@@ -276,8 +276,9 @@ export default function Home() {
 
       <main id="home" className={`w-full min-h-screen ${cBgMain} ${cTextMain}`}>
         {/* --- HERO SECTION --- */}
-        {/* pb-[12vh]: il blocco sta un po' sopra la metà, al centro ottico e fuori dalla sfumatura */}
-        <section aria-label="Intro" className="hero-red min-h-screen flex flex-col justify-center items-center pb-[12vh] relative overflow-hidden text-black">
+        {/* Desktop: tutto il blocco al centro, pb-[12vh] lo porta al centro ottico e fuori dalla sfumatura.
+            Mobile: nome al centro dello spazio libero, bottoni in fondo sulla riga del "+" */}
+        <section aria-label="Intro" className="hero-red min-h-[100svh] flex flex-col md:justify-center md:items-center md:pb-[12vh] relative overflow-hidden text-black">
           {/* Rosso e nero che si muovono lenti come un fluido */}
           <HeroFluid />
           {/* Elefanti di Dalí che attraversano lo sfondo, sotto la sfumatura */}
@@ -288,25 +289,38 @@ export default function Home() {
           <div aria-hidden="true" className="lynch-grain hero-grain absolute pointer-events-none" />
           {/* Parte ancora rossa della hero (il fondo sfumato conta già come scuro per la navigazione) */}
           <div aria-hidden="true" data-nav-surface="red" className="pointer-events-none absolute inset-x-0 top-0 bottom-[25vh]" />
-          <div className="wrap flex flex-col items-center text-center z-10 relative">
-            {/* Il nome cresce con lo schermo restando su una riga: Doto rende meglio grande */}
-            <SmokeTitle lines={HERO_LINES} className="text-[clamp(2.25rem,10.5vw,8rem)] font-bold leading-none whitespace-nowrap mb-4 md:mb-6" />
+          {/* Anno in alto, sulla stessa altezza della riga di navigazione: al centro su
+              mobile, a sinistra su desktop dove il centro è occupato dal menu */}
+          <div className="absolute top-0 inset-x-0 z-10 pt-[env(safe-area-inset-top)]">
+            <div className="wrap h-14 md:h-[76px] flex items-center justify-center md:justify-start text-sm font-medium">
+              <p>2026 ©</p>
+            </div>
+          </div>
+          <div className="wrap flex-1 md:flex-none flex flex-col items-center text-center z-10 relative pb-[calc(28px+env(safe-area-inset-bottom))] md:pb-0">
+            {/* pb-[16svh]: su mobile il nome resta sopra la metà, lontano dalla sfumatura
+                scura, così attorno a lui l'alone di rosso pieno resta intero */}
+            <div className="my-auto pb-[16svh] md:my-0 md:pb-0 flex flex-col items-center">
+              {/* Il nome cresce con lo schermo restando su una riga: Doto rende meglio grande */}
+              <SmokeTitle lines={HERO_LINES} className="text-[clamp(2.25rem,10.5vw,8rem)] font-bold leading-none whitespace-nowrap mb-0.5 md:mb-1" />
 
-            {/* Il ruolo come etichetta sotto il nome: il nome resta l'unica cosa grande */}
-            <FadeIn delay={500}>
-              <p className="text-xs md:text-sm font-semibold uppercase tracking-widest mb-8 md:mb-12">
-                Digital Designer
-              </p>
-            </FadeIn>
+              {/* Il ruolo come etichetta sotto il nome: il nome resta l'unica cosa grande */}
+              <FadeIn delay={500}>
+                <p className="text-xs md:text-sm font-semibold uppercase tracking-widest md:mb-12">
+                  Digital Designer
+                </p>
+              </FadeIn>
+            </div>
 
-            {/* Un'azione principale piena e una secondaria a cornice, larghe uguali */}
-            <FadeIn delay={1050}>
-              <div className="grid grid-cols-2 gap-3 w-full max-w-sm md:flex md:w-auto md:max-w-none md:gap-4">
-                <a {...anchor('contact')} className="rounded-full hero-btn-red group inline-flex items-center justify-center gap-2 whitespace-nowrap px-4 md:px-7 py-3 md:min-w-[13rem] border-[3px] border-black bg-black text-[#ff2b1c] font-semibold text-sm md:text-base active:scale-95 transition-all duration-200">
+            {/* Un'azione principale piena e una secondaria a cornice. Su mobile stanno in
+                fondo, sulla sfumatura scura: rosse come i bottoni delle sezioni nere, alte
+                come il "+" (h-12 centrato sui suoi 56px) e con spazio a destra per lui */}
+            <FadeIn delay={1050} className="self-stretch ml-2 mr-[72px] md:self-auto md:mx-0">
+              <div className="flex gap-2 md:gap-4">
+                <a {...anchor('contact')} className="rounded-full hero-btn-red group flex-1 md:flex-none inline-flex items-center justify-center gap-2 whitespace-nowrap h-12 md:h-auto px-3 md:px-7 md:py-3 md:min-w-[13rem] border-2 border-[#ff2b1c] bg-[#ff2b1c] text-black md:border-black md:bg-black md:text-[#ff2b1c] font-semibold text-sm md:text-base active:scale-95 transition-all duration-200">
                   Work with me
                   <ArrowRight size={18} className="hidden md:block group-hover:translate-x-1 transition-transform" />
                 </a>
-                <a {...anchor('projects')} className="rounded-full hero-btn inline-flex items-center justify-center whitespace-nowrap px-4 md:px-7 py-3 md:min-w-[13rem] border-[3px] border-black bg-transparent text-black font-semibold text-sm md:text-base active:scale-95 transition-all duration-200">
+                <a {...anchor('projects')} className="rounded-full hero-btn flex-1 md:flex-none inline-flex items-center justify-center whitespace-nowrap h-12 md:h-auto px-3 md:px-7 md:py-3 md:min-w-[13rem] border-2 border-[#ff2b1c] bg-transparent text-[#ff2b1c] md:border-black md:text-black font-semibold text-sm md:text-base active:scale-95 transition-all duration-200">
                   Archive
                 </a>
               </div>
@@ -324,7 +338,7 @@ export default function Home() {
         <ServicesSection services={services} onCta={handleServiceCta} onContact={() => scrollToSection('contact')} />
 
         {/* --- CHI SONO (LA STANZA ROSSA) --- */}
-        <AboutSection onContact={() => scrollToSection('contact')} />
+        <AboutSection />
 
         {/* --- CONTATTI --- */}
         <section id="contact" data-nav-surface="red" className="punk-red text-black relative z-10 section-y">
@@ -363,7 +377,7 @@ export default function Home() {
                         <button onClick={() => handleCopy(PHONE, 'phone')} aria-label="Copia il numero di telefono" className="w-11 h-11 flex items-center justify-center hover:bg-black hover:text-[#ff2b1c] transition-colors">
                           {copiedData === 'phone' ? <CopiedBadge /> : <Copy size={18} />}
                         </button>
-                        <a href="https://wa.me/393495862375" target="_blank" rel="noopener noreferrer" className="rounded-full inline-flex items-center gap-2 px-4 py-3 bg-black text-[#ff2b1c] text-sm font-semibold uppercase tracking-widest border-[3px] border-black hover:bg-transparent hover:text-black transition-colors">
+                        <a href="https://wa.me/393495862375" target="_blank" rel="noopener noreferrer" className="rounded-full inline-flex items-center gap-2 px-4 py-3 bg-black text-[#ff2b1c] text-sm font-semibold uppercase tracking-widest border-2 border-black hover:bg-transparent hover:text-black transition-colors">
                           <MessageCircle size={16} /> WhatsApp
                         </a>
                       </dd>
@@ -430,7 +444,7 @@ export default function Home() {
                       <button
                         type="submit"
                         disabled={submitting}
-                        className="rounded-full self-start inline-flex items-center gap-3 px-10 py-4 bg-black text-[#ff2b1c] border-[3px] border-black font-semibold uppercase tracking-widest hover:bg-transparent hover:text-black active:scale-95 transition-colors duration-200 disabled:opacity-60"
+                        className="rounded-full self-start inline-flex items-center gap-3 px-10 py-4 bg-black text-[#ff2b1c] border-2 border-black font-semibold uppercase tracking-widest hover:bg-transparent hover:text-black active:scale-95 transition-colors duration-200 disabled:opacity-60"
                       >
                         {submitting ? (
                           <><span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true" /> Sending…</>

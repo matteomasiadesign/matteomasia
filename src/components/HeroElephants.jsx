@@ -5,6 +5,8 @@ import React, { useEffect, useRef, useState } from 'react'
 // come un video qualsiasi su ogni dispositivo. È in scala di grigi su bianco e
 // sta in "multiply" sopra il fluido: il bianco sparisce e il fumo diventa rosso
 // scuro sul rosso. Formato orizzontale o verticale a seconda della hero.
+// Attorno al nome il video si attenua con una maschera: dietro i puntini neri
+// gli elefanti restano appena visibili, come dietro una nebbia.
 //
 // Con "Riduci movimento" o "Risparmio dati" resta il primo fotogramma, fermo.
 // Fuori schermo il video va in pausa.
@@ -14,6 +16,7 @@ const SRC = '/video/elephants-'
 export default function HeroElephants() {
   const videoRef = useRef(null)
   const [variant, setVariant] = useState(null)
+  const [mask, setMask] = useState(undefined)
 
   // Orizzontale o verticale, secondo le proporzioni della hero
   useEffect(() => {
@@ -22,6 +25,27 @@ export default function HeroElephants() {
     const ro = new ResizeObserver(([entry]) => {
       const { width, height } = entry.contentRect
       setVariant(width / Math.max(height, 1) < 0.9 ? 'portrait' : 'landscape')
+      // Ellisse centrata sul titolo: velo leggero sopra le lettere, poi
+      // il velo cala con una curva che parte e arriva piano (smoothstep), così
+      // non si vede dove finisce
+      const title = host.querySelector('h1')
+      if (!title) return
+      const r = host.getBoundingClientRect()
+      const t = title.getBoundingClientRect()
+      const cx = t.left + t.width / 2 - r.left
+      const cy = t.top + t.height / 2 - r.top
+      const CLEAR = 25 // % dell'ellisse con il velo al massimo
+      const FLOOR = 0.3 // quanto si vedono gli elefanti dietro le lettere
+      const stops = Array.from({ length: 9 }, (_, i) => {
+        const k = i / 8
+        const a = FLOOR + (1 - FLOOR) * k * k * (3 - 2 * k)
+        return `rgba(0,0,0,${a.toFixed(3)}) ${(CLEAR + (100 - CLEAR) * k).toFixed(1)}%`
+      })
+      // Su mobile il nome è basso (~40px): senza un minimo legato allo schermo
+      // l'ellisse diventerebbe una striscia e l'alone sparirebbe
+      const rx = t.width * 0.8
+      const ry = Math.max(t.height * 1.7, r.height * 0.18)
+      setMask(`radial-gradient(${rx}px ${ry}px at ${cx}px ${cy}px, ${stops.join(', ')})`)
     })
     ro.observe(host)
     return () => ro.disconnect()
@@ -75,6 +99,7 @@ export default function HeroElephants() {
       preload="none"
       disablePictureInPicture
       poster={variant ? `${SRC}${variant}.jpg` : undefined}
+      style={{ maskImage: mask, WebkitMaskImage: mask }}
       className="absolute inset-0 w-full h-full object-cover pointer-events-none mix-blend-multiply"
     >
       {/* Codec dichiarati: Safari che non decodifica il VP9 salta al MP4 invece di fermarsi */}

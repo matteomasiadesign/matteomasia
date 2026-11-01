@@ -64,8 +64,9 @@ void main() {
 
   vec3 red = vec3(1.0, 0.169, 0.11);
   vec3 deep = vec3(0.62, 0.06, 0.03);
-  // Anche al centro il rosso respira appena, tra il rosso pieno e uno più cupo
-  vec3 col = mix(red, deep, smoothstep(0.35, 0.75, f) * (0.18 + 0.5 * away));
+  // Il rosso respira verso uno più cupo solo lontano dal titolo: dietro i
+  // puntini neri resta rosso pieno, il fondo più chiaro che c'è
+  vec3 col = mix(red, deep, smoothstep(0.35, 0.75, f) * 0.68 * away);
   float ink = smoothstep(0.44, 0.74, f) * away;
   col = mix(col, vec3(0.0), ink * 0.94);
   gl_FragColor = vec4(col, 1.0);

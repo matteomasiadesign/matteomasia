@@ -745,7 +745,7 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
                 {current && (
                   <Link
                     to={`/progetti/${current.slug || current.id}`}
-                    className="rounded-full group flex items-center justify-center gap-2 whitespace-nowrap h-12 md:h-auto px-5 md:px-6 md:py-3 border-[3px] border-[#ff2b1c] bg-[#ff2b1c] text-black font-semibold text-sm md:text-base hover:bg-transparent hover:text-[#ff2b1c] active:scale-95 transition-colors duration-200"
+                    className="rounded-full group flex items-center justify-center gap-2 whitespace-nowrap h-12 md:h-auto px-5 md:px-6 md:py-3 border-2 border-[#ff2b1c] bg-[#ff2b1c] text-black font-semibold text-sm md:text-base hover:bg-transparent hover:text-[#ff2b1c] active:scale-95 transition-colors duration-200"
                   >
                     Open project
                     <ArrowRight size={16} className="hidden md:block group-hover:translate-x-1 transition-transform" />
@@ -753,7 +753,7 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
                 )}
                 <Link
                   to="/progetti"
-                  className="rounded-full hero-btn-red group flex items-center justify-center gap-2 whitespace-nowrap h-12 md:h-auto px-5 md:px-6 md:py-3 border-[3px] border-[#ff2b1c] bg-transparent text-[#ff2b1c] font-semibold text-sm md:text-base active:scale-95 transition-colors duration-200"
+                  className="rounded-full hero-btn-red group flex items-center justify-center gap-2 whitespace-nowrap h-12 md:h-auto px-5 md:px-6 md:py-3 border-2 border-[#ff2b1c] bg-transparent text-[#ff2b1c] font-semibold text-sm md:text-base active:scale-95 transition-colors duration-200"
                 >
                   View all
                 </Link>
