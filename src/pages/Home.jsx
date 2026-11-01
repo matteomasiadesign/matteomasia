@@ -20,6 +20,7 @@ import { supabase, isSupabaseReady } from '../lib/supabase.js'
 import ClothCarousel from '../components/ClothCarousel.jsx'
 import SmokeTitle from '../components/SmokeTitle.jsx'
 import HeroFluid from '../components/HeroFluid.jsx'
+import HeroElephants from '../components/HeroElephants.jsx'
 import ServicesSection from '../components/ServicesSection.jsx'
 import AboutSection from '../components/AboutSection.jsx'
 import Navbar from '../components/Navbar.jsx'
@@ -279,6 +280,8 @@ export default function Home() {
         <section aria-label="Intro" className="hero-red min-h-screen flex flex-col justify-center items-center pb-[12vh] relative overflow-hidden text-black">
           {/* Rosso e nero che si muovono lenti come un fluido */}
           <HeroFluid />
+          {/* Elefanti di Dalí che attraversano lo sfondo, sotto la sfumatura */}
+          <HeroElephants />
           {/* Sfumatura dal rosso allo sfondo della pagina, verso i progetti */}
           <div aria-hidden="true" className="hero-fade pointer-events-none absolute inset-x-0 bottom-0 h-[38vh]" />
           {/* Grana di pellicola, la stessa della stanza rossa */}
