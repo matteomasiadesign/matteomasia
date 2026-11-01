@@ -20,6 +20,9 @@ const ITERATIONS = 4
 // più grande (580px CSS) a densità 2x, con un po' di margine
 const TEX_W = 1280
 const TEX_H = 854
+// Su mobile, spazio occupato dalla scheda in alto e dai bottoni in basso (px)
+const MOBILE_TOP = 215
+const MOBILE_BOTTOM = 100
 
 const vertexShader = /* glsl */ `
   varying vec2 vUv;
@@ -248,8 +251,10 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
       const resize = () => {
         const vw = canvas.clientWidth
         const vh = canvas.clientHeight
+        // Altezza davvero visibile: cambia con le barre del browser, la tela no
+        layout.vis = window.innerHeight
         // Su mobile la barra dell'indirizzo che compare e scompare durante lo
-        // scroll lancia "resize" anche se la tela (100svh) resta uguale:
+        // scroll lancia "resize" anche se la tela (100lvh) resta uguale:
         // ricostruire il tessuto lì vorrebbe dire uno scatto a ogni scroll
         if (vw === layout.vw && vh === layout.vh) return
         renderer.setSize(vw, vh, false)
@@ -261,12 +266,15 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
         // Su mobile le card scorrono in verticale come lo scroll: stampe
         // verticali larghe quasi quanto lo schermo, le vicine sopra e sotto
         const ratio = mobile ? 1 / 1.1 : 1.5
-        let w = mobile ? vw * 0.8 : Math.min(vw * 0.36, 580)
+        let w = mobile ? vw * 0.86 : Math.min(vw * 0.36, 580)
         let h = w / ratio
-        // Sui telefoni bassi scheda e comandi occupano più spazio in proporzione
-        const maxH = vh * (mobile ? (vh < 720 ? 0.34 : 0.4) : 0.42)
+        // Su mobile la card riempie lo spazio tra scheda e bottoni (misurato
+        // sull'altezza visibile più piccola, con le barre del browser aperte)
+        const maxH = mobile
+          ? (Math.min(vh, layout.vis) - MOBILE_TOP - MOBILE_BOTTOM) * 0.84
+          : vh * 0.42
         if (h > maxH) { h = maxH; w = h * ratio }
-        layout = { w, h, mobile, vw, vh }
+        layout = { w, h, mobile, vw, vh, vis: layout.vis }
         cards.forEach(buildCloth)
       }
 
@@ -342,9 +350,10 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
         const light = clamp(1 - ad * 1.15, 0, 1)
         if (mobile) {
           // Colonna verticale: la successiva arriva dal basso e quella attuale
-          // esce in alto, piegandosi all'indietro come su un rullo
-          // (sui telefoni bassi più distanti, così non finiscono sotto la scheda)
-          dummy.position.set(0, -d * h * (layout.vh < 720 ? 1.35 : 1.18), -ad * h * 0.6)
+          // esce in alto, piegandosi all'indietro come su un rullo. La card
+          // attiva sta al centro dello spazio libero tra scheda e bottoni.
+          const center = MOBILE_TOP + (layout.vis - MOBILE_TOP - MOBILE_BOTTOM) / 2
+          dummy.position.set(0, layout.vh / 2 - center - d * h * 1.32, -ad * h * 0.6)
           dummy.rotation.set(clamp(d * 0.35, -0.6, 0.6), 0, ((2 - d * 2) * Math.PI) / 180)
         } else {
           dummy.position.set(d * w * 0.9 + w * 0.32, d * h * 0.45 - ad * ad * h * 0.06, -ad * w * 0.5)
@@ -630,13 +639,15 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
       className={`relative w-full ${isDark ? 'slides-dark' : 'slides-light'}`}
       style={{ height: `${100 + Math.max(count - 1, 1) * 60}vh` }}
     >
-      <div className="sticky top-0 h-[100svh] w-full overflow-hidden">
+      {/* 100lvh: la scena riempie lo schermo anche a barre del browser chiuse
+          (con 100svh restava una fascia vuota in fondo) e non cambia altezza
+          quando le barre compaiono, quindi il tessuto non si ricostruisce */}
+      <div className="sticky top-0 h-[100lvh] w-full overflow-hidden">
         <div aria-hidden="true" className="slides-light-source absolute inset-0 pointer-events-none" />
         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full touch-pan-y select-none" />
         <div aria-hidden="true" className="slides-grain absolute inset-0 pointer-events-none" />
         {/* Su mobile le card vicine passano sotto scheda e comandi: lì sfumano nello sfondo */}
-        <div aria-hidden="true" className="md:hidden absolute inset-x-0 top-0 h-[30%] pointer-events-none" style={{ background: `linear-gradient(${bgHex} 65%, transparent)` }} />
-        <div aria-hidden="true" className="md:hidden absolute inset-x-0 bottom-0 h-[32%] pointer-events-none" style={{ background: `linear-gradient(to top, ${bgHex} 55%, transparent)` }} />
+        <div aria-hidden="true" className="md:hidden absolute inset-x-0 top-0 h-[250px] pointer-events-none" style={{ background: `linear-gradient(${bgHex} 70%, transparent)` }} />
 
         {/* Per tastiera e motori di ricerca: le card sono solo pixel della canvas */}
         <ul className="sr-only">
@@ -645,15 +656,29 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
           ))}
         </ul>
 
-        {/* Scheda del progetto (in stile titoli di coda) e azioni, sulla griglia del sito */}
-        <div className="pointer-events-none absolute inset-0">
-          <div className="wrap h-full flex flex-col justify-between pt-20 md:pt-28 pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] md:pb-10">
+        {/* Scheda del progetto (in stile titoli di coda) e azioni, sulla griglia del sito.
+            Alta quanto la parte visibile (dvh): con le barre del browser aperte o chiuse
+            i bottoni restano sempre in fondo, alla quota del "+" */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-[100dvh]">
+          <div aria-hidden="true" className="md:hidden absolute inset-x-0 bottom-0 h-[110px]" style={{ background: `linear-gradient(to top, ${bgHex} 45%, transparent)` }} />
+          <div className="wrap relative h-full flex flex-col justify-between pt-20 md:pt-28 pb-[calc(28px+env(safe-area-inset-bottom,0px))] md:pb-10">
             <div className="w-full md:w-[360px]">
-              <span className="block text-xs font-semibold uppercase tracking-widest text-[#ff2b1c] mb-3">
-                Selected work
-              </span>
-              <div className="overflow-hidden">
-                <h2 key={current?.id} className={`slides-swap text-4xl md:text-5xl font-semibold tracking-tight leading-[1.05] truncate ${cTextMain}`}>
+              <div className="flex items-baseline justify-between gap-4 mb-3">
+                <span className="text-xs font-semibold uppercase tracking-widest text-[#ff2b1c]">
+                  Selected work
+                </span>
+                <span className={`md:hidden text-xs font-semibold tracking-widest tabular-nums ${cTextMuted}`}>
+                  <span className={cTextMain}>{pad(active + 1)}</span> / {pad(count)}
+                </span>
+              </div>
+              {/* Il titolo si rimpicciolisce per stare su una riga: Doto è monospace,
+                  ogni carattere è largo 0.6em, quindi basta dividere lo spazio per i caratteri */}
+              <div className="overflow-hidden [--title-max:2.75rem] [--title-w:calc(100vw_-_2_*_var(--gutter))] md:[--title-max:3rem] md:[--title-w:360px]">
+                <h2
+                  key={current?.id}
+                  className={`slides-swap font-semibold leading-[1.1] whitespace-nowrap ${cTextMain}`}
+                  style={{ fontSize: `min(var(--title-max), calc(var(--title-w) / ${Math.max(current?.title?.length || 1, 1) * 0.6}))` }}
+                >
                   {current?.title}
                 </h2>
               </div>
@@ -662,7 +687,7 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
                   <dt className={`text-xs font-semibold uppercase tracking-widest ${cTextMuted} pt-0.5`}>Category</dt>
                   <dd key={`c-${current?.id}`} className="slides-swap text-right">{current?.category}</dd>
                 </div>
-                {/* Su mobile il contatore sta accanto alle tacche, in basso */}
+                {/* Su mobile il contatore sta accanto a "Selected work" */}
                 <div className="hidden md:flex justify-between gap-4 py-2 border-t border-[#ff2b1c]/40">
                   <dt className={`text-xs font-semibold uppercase tracking-widest ${cTextMuted} pt-0.5`}>Project</dt>
                   <dd className="tabular-nums">{pad(active + 1)} / {pad(count)}</dd>
@@ -675,46 +700,42 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
               </dl>
             </div>
 
-            {/* Una tacca per ogni progetto + azioni */}
-            <div className="flex flex-col md:flex-row items-stretch md:items-end justify-between gap-4 md:gap-5">
-              <div className="flex items-end justify-between gap-4">
-                {/* Le tacche portano al progetto (le aree di tocco sono più larghe del segno);
-                    tastiera e lettori di schermo usano l'elenco nascosto sopra */}
-                <div className="pointer-events-auto flex items-end" aria-hidden="true">
-                  {projects.map((p, i) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      tabIndex={-1}
-                      onClick={() => goTo(i)}
-                      className="group/tick h-8 w-4 flex items-end justify-start"
-                    >
-                      <span
-                        className={`w-[3px] transition-all duration-500 ${i === active ? 'h-6 bg-[#ff2b1c]' : 'h-3 bg-[#ff2b1c]/35 group-hover/tick:bg-[#ff2b1c]/70'}`}
-                      />
-                    </button>
-                  ))}
-                </div>
-                <p className={`md:hidden text-xs font-semibold uppercase tracking-widest tabular-nums ${cTextMuted}`}>
-                  <span className={cTextMain}>{pad(active + 1)}</span> / {pad(count)}
-                </p>
+            {/* Tacche (solo desktop) e azioni */}
+            <div className="flex items-end justify-between gap-5">
+              {/* Le tacche portano al progetto (le aree di tocco sono più larghe del segno);
+                  tastiera e lettori di schermo usano l'elenco nascosto sopra */}
+              <div className="pointer-events-auto hidden md:flex items-end" aria-hidden="true">
+                {projects.map((p, i) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    tabIndex={-1}
+                    onClick={() => goTo(i)}
+                    className="group/tick h-8 w-4 flex items-end justify-start"
+                  >
+                    <span
+                      className={`w-[3px] transition-all duration-500 ${i === active ? 'h-6 bg-[#ff2b1c]' : 'h-3 bg-[#ff2b1c]/35 group-hover/tick:bg-[#ff2b1c]/70'}`}
+                    />
+                  </button>
+                ))}
               </div>
-              {/* md:mr-20: su desktop i bottoni stanno alla quota del "+" e gli lasciano spazio */}
-              <div className="pointer-events-auto grid grid-cols-2 gap-3 md:flex md:flex-wrap md:mr-20">
+              {/* Su mobile i bottoni stanno in fondo sulla stessa riga del "+", alti come
+                  lui (h-12 centrato sui suoi 56px); su desktop gli lasciano spazio a destra */}
+              <div className="pointer-events-auto flex gap-2 md:gap-3 md:mr-20">
                 {current && (
                   <Link
                     to={`/progetti/${current.slug || current.id}`}
-                    className="rounded-full group flex items-center justify-center gap-2 whitespace-nowrap px-4 md:px-6 py-3 border-[3px] border-[#ff2b1c] bg-[#ff2b1c] text-black font-semibold text-sm md:text-base hover:bg-transparent hover:text-[#ff2b1c] active:scale-95 transition-colors duration-200"
+                    className="rounded-full group flex items-center justify-center gap-2 whitespace-nowrap h-12 md:h-auto px-5 md:px-6 md:py-3 border-[3px] border-[#ff2b1c] bg-[#ff2b1c] text-black font-semibold text-sm md:text-base hover:bg-transparent hover:text-[#ff2b1c] active:scale-95 transition-colors duration-200"
                   >
                     Open project
-                    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight size={16} className="hidden md:block group-hover:translate-x-1 transition-transform" />
                   </Link>
                 )}
                 <Link
                   to="/progetti"
-                  className="rounded-full hero-btn-red group flex items-center justify-center gap-2 whitespace-nowrap px-4 md:px-6 py-3 border-[3px] border-[#ff2b1c] bg-transparent text-[#ff2b1c] font-semibold text-sm md:text-base active:scale-95 transition-colors duration-200"
+                  className="rounded-full hero-btn-red group flex items-center justify-center gap-2 whitespace-nowrap h-12 md:h-auto px-5 md:px-6 md:py-3 border-[3px] border-[#ff2b1c] bg-transparent text-[#ff2b1c] font-semibold text-sm md:text-base active:scale-95 transition-colors duration-200"
                 >
-                  View archive
+                  View all
                 </Link>
               </div>
             </div>
