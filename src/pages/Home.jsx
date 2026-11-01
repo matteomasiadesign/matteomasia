@@ -286,15 +286,15 @@ export default function Home() {
           {/* Parte ancora rossa della hero (il fondo sfumato conta già come scuro per la navigazione) */}
           <div aria-hidden="true" data-nav-surface="red" className="pointer-events-none absolute inset-x-0 top-0 bottom-[25vh]" />
           <div className="wrap flex flex-col items-center text-center z-10 relative">
-            {/* Il ruolo come etichetta sopra il nome: il nome resta l'unica cosa grande */}
+            {/* Il nome cresce con lo schermo restando su una riga: Doto rende meglio grande */}
+            <SmokeTitle lines={HERO_LINES} className="text-[clamp(2.25rem,10.5vw,8rem)] font-bold leading-none whitespace-nowrap mb-4 md:mb-6" />
+
+            {/* Il ruolo come etichetta sotto il nome: il nome resta l'unica cosa grande */}
             <FadeIn delay={500}>
-              <p className="text-xs md:text-sm font-semibold uppercase tracking-widest mb-4 md:mb-6">
+              <p className="text-xs md:text-sm font-semibold uppercase tracking-widest mb-8 md:mb-12">
                 Digital Designer
               </p>
             </FadeIn>
-
-            {/* Il nome cresce con lo schermo restando su una riga: Doto rende meglio grande */}
-            <SmokeTitle lines={HERO_LINES} className="text-[clamp(2.25rem,10.5vw,8rem)] font-bold leading-none whitespace-nowrap mb-8 md:mb-12" />
 
             {/* Un'azione principale piena e una secondaria a cornice, larghe uguali */}
             <FadeIn delay={1050}>

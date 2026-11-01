@@ -561,7 +561,10 @@ export default function SmokeTitle({ lines, className = '' }) {
     }
 
     const onTap = (e) => {
-      if (e.pointerType === 'mouse' || mode !== 'idle' || !measured) return
+      if (e.pointerType === 'mouse' || mode !== 'idle' || performance.now() <= readyAt) return
+      // Dopo un resize a loop fermo la misura è da rifare: con il mouse la rifà
+      // il movimento che sveglia il loop, al tocco va rifatta qui
+      if (!measured) measure()
       burst()
       wake()
     }
