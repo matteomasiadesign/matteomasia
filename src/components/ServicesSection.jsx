@@ -102,7 +102,7 @@ export default function ServicesSection({ services, onCta, onContact }) {
           <div className="flex items-end justify-between gap-6">
             <div>
               <span className="block text-xs font-semibold uppercase tracking-widest mb-4">// Skills</span>
-              <h2 className="text-5xl md:text-8xl leading-[0.9]">What I do.</h2>
+              <h2 className="text-5xl md:text-7xl leading-[0.9]">What I do.</h2>
               <p className="mt-5 text-base md:text-lg font-medium max-w-md">
                 {count} aree per una comunicazione visiva e digitale completa.
               </p>
@@ -113,7 +113,7 @@ export default function ServicesSection({ services, onCta, onContact }) {
           </div>
 
           {/* Elenco */}
-          <ul className="mt-14 md:mt-20 border-t-[3px] border-black">
+          <ul className="mt-14 md:mt-12 border-t-[3px] border-black">
             {services.map((s, i) => {
               const tags = getServiceDeliverables(s, i)
               return (
@@ -122,10 +122,10 @@ export default function ServicesSection({ services, onCta, onContact }) {
                     ref={(el) => { rowRefs.current[i] = el }}
                     onClick={() => open(i)}
                     aria-haspopup="dialog"
-                    className="punk-row group w-full flex items-center gap-4 md:gap-8 px-2 md:px-4 py-6 md:py-8 text-left"
+                    className="punk-row group w-full flex items-center gap-4 md:gap-8 px-2 md:px-4 py-6 md:py-5 text-left"
                   >
                     <span className="shrink-0 text-xs md:text-sm font-semibold tabular-nums">[{pad(i + 1)}]</span>
-                    <span className="punk-row-title font-display flex-1 text-2xl md:text-5xl leading-[0.95] uppercase">{s.title}</span>
+                    <span className="punk-row-title font-display flex-1 text-2xl md:text-3xl lg:text-4xl leading-[0.95] uppercase">{s.title}</span>
                     <span className="hidden lg:block shrink-0 max-w-[220px] text-right text-[11px] font-semibold uppercase tracking-widest opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-200">
                       {tags.slice(0, 3).join(' · ')}
                     </span>
@@ -138,7 +138,7 @@ export default function ServicesSection({ services, onCta, onContact }) {
             })}
           </ul>
 
-          <div className="flex justify-center mt-14 md:mt-20">
+          <div className="flex justify-center mt-14 md:mt-12">
             <button
               onClick={onContact}
               className="rounded-full hero-btn punk-shadow group flex items-center gap-3 px-8 py-4 border-[3px] border-black bg-transparent text-black font-semibold text-base md:text-lg active:scale-95 transition-colors duration-200"

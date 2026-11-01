@@ -330,13 +330,13 @@ export default function Home() {
               <p className={`${label} flex items-center gap-2`}>
                 Local time · Porto Torres <LocalTime />
               </p>
-              <h2 className="mt-4 text-[clamp(3.5rem,12vw,11rem)] leading-[0.85] uppercase">Let's talk.</h2>
+              <h2 className="mt-4 text-[clamp(3.5rem,9vw,8rem)] leading-[0.85] uppercase">Let's talk.</h2>
             </FadeIn>
 
-            <div className="grid-12 gap-y-14 mt-14 md:mt-20">
-              <div className="col-span-12 md:col-span-5 flex flex-col gap-10">
+            <div className="grid-12 gap-y-14 mt-14 md:mt-14">
+              <div className="col-span-12 md:col-span-5 flex flex-col gap-10 md:gap-8">
                 <FadeIn delay={100}>
-                  <p className="text-xl md:text-2xl font-medium leading-snug [text-wrap:pretty]">
+                  <p className="text-xl font-medium leading-snug [text-wrap:pretty]">
                     Vuoi propormi una collaborazione, richiedere un preventivo o scambiare due chiacchiere?
                   </p>
                   <p className="mt-3 text-sm font-semibold">Rispondo di solito entro 24 ore.</p>
@@ -344,7 +344,7 @@ export default function Home() {
 
                 <FadeIn delay={200}>
                   <dl className="border-t-[3px] border-black">
-                    <div className="py-5 border-b-[3px] border-black">
+                    <div className="py-5 md:py-4 border-b-[3px] border-black">
                       <dt className={`${label} mb-2`}>Email</dt>
                       <dd className="flex flex-wrap items-center gap-3">
                         <a href={`mailto:${EMAIL}`} className="text-lg md:text-xl font-semibold break-all hover:underline underline-offset-4 decoration-2">{EMAIL}</a>
@@ -353,7 +353,7 @@ export default function Home() {
                         </button>
                       </dd>
                     </div>
-                    <div className="py-5 border-b-[3px] border-black">
+                    <div className="py-5 md:py-4 border-b-[3px] border-black">
                       <dt className={`${label} mb-2`}>Phone</dt>
                       <dd className="flex flex-wrap items-center gap-3">
                         <a href={`tel:${PHONE}`} className="text-lg md:text-xl font-semibold hover:underline underline-offset-4 decoration-2">+39 349 586 2375</a>
@@ -365,7 +365,7 @@ export default function Home() {
                         </a>
                       </dd>
                     </div>
-                    <div className="py-5 border-b-[3px] border-black">
+                    <div className="py-5 md:py-4 border-b-[3px] border-black">
                       <dt className={`${label} mb-2`}>Social</dt>
                       <dd className="flex flex-col gap-2">
                         <a href="https://instagram.com/matteomasiadesign" target="_blank" rel="noopener noreferrer" className="group inline-flex items-center gap-2 w-fit text-lg md:text-xl font-semibold hover:underline underline-offset-4 decoration-2">
@@ -382,7 +382,7 @@ export default function Home() {
 
               <FadeIn delay={300} className="col-span-12 md:col-span-6 md:col-start-7">
                 <form onSubmit={handleFormSubmit} noValidate className="flex flex-col gap-8">
-                  <h3 className="text-3xl md:text-4xl uppercase">Send a message</h3>
+                  <h3 className="text-3xl uppercase">Send a message</h3>
 
                   <div aria-live="polite">
                     {formStatus === 'success' && (
