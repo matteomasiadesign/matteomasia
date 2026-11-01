@@ -99,7 +99,7 @@ export default function ServicesSection({ services, onCta, onContact }) {
           {[0, 1].map((k) => (
             <div key={k} className="flex shrink-0">
               {marqueeItems.map((_, i) => (
-                <span key={i} className="font-display text-2xl md:text-3xl px-5 md:px-7 whitespace-nowrap">Servizi ✶</span>
+                <span key={i} className="font-display text-2xl md:text-3xl px-5 md:px-7 whitespace-nowrap">What I do ✶</span>
               ))}
             </div>
           ))}

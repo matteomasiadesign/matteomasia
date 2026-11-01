@@ -254,7 +254,7 @@ export default function Home() {
 
   const menuItems = [
     { name: 'Work', id: 'projects' },
-    { name: 'Services', id: 'services' },
+    { name: 'What I do', id: 'services' },
     { name: 'About', id: 'bio' },
     { name: 'Contact', id: 'contact' },
   ]

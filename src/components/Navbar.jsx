@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, X, MessageCircle, ArrowUpRight } from 'lucide-react'
+import { Plus, X, MessageCircle, ArrowUpRight, ArrowUp } from 'lucide-react'
 import { setScrollLocked } from '../lib/smoothScroll.js'
-import { useLocalTime } from '../lib/useLocalTime.js'
 
 // --- NAVIGAZIONE ---
 // Nella hero: una riga trasparente in alto, con le voci a sinistra.
@@ -143,20 +142,33 @@ export default function Navbar({ menuItems, onSection }) {
   const [past, setPast] = useState(false) // oltre la hero
   // closed → rising (la goccia sale) → open → closing (l'isola si chiude e la goccia scende)
   const [phase, setPhase] = useState('closed')
-  const time = useLocalTime()
+  // Sezione sullo schermo quando si apre il menu ('top' = la hero)
+  const [current, setCurrent] = useState('top')
   const surface = useSurfaceAt(FAB_GAP + FAB / 2)
 
   const fabRef = useRef(null)
   const blobRef = useRef(null)
   const dropRefs = [useRef(null), useRef(null)]
   const islandRef = useRef(null)
-  const firstItemRef = useRef(null)
   const busy = useRef(false)
   const phaseRef = useRef('closed')
   const surfaceRef = useRef(surface)
   surfaceRef.current = surface
 
   const go = (p) => { phaseRef.current = p; setPhase(p) }
+
+  // L'ultima sezione il cui inizio ha passato il 40% dello schermo: col menu
+  // aperto lo scroll è bloccato, quindi basta leggerla all'apertura
+  const sectionInView = () => {
+    const line = window.innerHeight * 0.4
+    let found = 'top'
+    menuItems.forEach((item) => {
+      const el = document.getElementById(item.id)
+      const box = el?.closest('section') || el
+      if (box && box.getBoundingClientRect().top <= line) found = item.id
+    })
+    return found
+  }
 
   useEffect(() => {
     const onScroll = () => setPast(window.scrollY > window.innerHeight * 0.6)
@@ -200,6 +212,7 @@ export default function Navbar({ menuItems, onSection }) {
   const open = async () => {
     if (busy.current || phaseRef.current !== 'closed') return
     busy.current = true
+    setCurrent(sectionInView())
     setScrollLocked(true)
     go('rising')
     const blob = await travel(true)
@@ -217,7 +230,7 @@ export default function Navbar({ menuItems, onSection }) {
     requestAnimationFrame(() => blob.cancel())
     await grow.finished.catch(() => {})
     island.style.clipPath = ISLAND_OPEN
-    firstItemRef.current?.focus({ preventScroll: true })
+    island.querySelector('[aria-current]')?.focus({ preventScroll: true })
     busy.current = false
   }
 
@@ -310,8 +323,16 @@ export default function Navbar({ menuItems, onSection }) {
         }}
         {...(phase !== 'open' && { inert: '' })}
       >
-        <div className="menu-item flex items-center justify-between pl-6 pr-2 pt-2 h-[60px]" style={{ '--i': 0 }}>
-          <span className="text-xs font-semibold uppercase tracking-widest tabular-nums">Porto Torres · {time}</span>
+        <div className="menu-item flex items-center justify-between px-2 pt-2 h-[60px]" style={{ '--i': 0 }}>
+          <a
+            href="#home"
+            onClick={(e) => goTo(e, 'home')}
+            aria-current={current === 'top' ? 'location' : undefined}
+            className={`h-11 pl-4 pr-5 rounded-full flex items-center gap-2 border text-sm font-semibold transition-colors duration-200 ${current === 'top' ? 'bg-[#ff2b1c] text-black border-transparent' : 'border-[#ff2b1c]/50 hover:bg-[#ff2b1c] hover:text-black focus-visible:bg-[#ff2b1c] focus-visible:text-black'}`}
+          >
+            <ArrowUp size={16} strokeWidth={2.5} />
+            Go to top
+          </a>
           <button
             type="button"
             onClick={() => close()}
@@ -327,13 +348,13 @@ export default function Navbar({ menuItems, onSection }) {
             {menuItems.map((item, i) => (
               <li key={item.id} className="menu-item" style={{ '--i': i + 1 }}>
                 <a
-                  ref={i === 0 ? firstItemRef : undefined}
                   href={`#${item.id}`}
                   onClick={(e) => goTo(e, item.id)}
-                  className="flex items-baseline gap-4 rounded-full px-5 py-3 hover:bg-[#ff2b1c] hover:text-black focus-visible:bg-[#ff2b1c] focus-visible:text-black transition-colors duration-200"
+                  aria-current={current === item.id ? 'location' : undefined}
+                  className={`flex items-baseline gap-4 rounded-full px-5 py-3 transition-colors duration-200 ${current === item.id ? 'bg-[#ff2b1c] text-black' : 'hover:bg-[#ff2b1c] hover:text-black focus-visible:bg-[#ff2b1c] focus-visible:text-black'}`}
                 >
                   <span className="text-xs font-semibold tabular-nums opacity-70">{String(i + 1).padStart(2, '0')}</span>
-                  <span className="font-display text-4xl md:text-5xl leading-none uppercase">{item.name}</span>
+                  <span className="font-display text-4xl md:text-5xl leading-none uppercase whitespace-nowrap">{item.name}</span>
                 </a>
               </li>
             ))}
