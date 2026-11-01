@@ -258,9 +258,12 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
         camera.position.z = vh / 2 / Math.tan((camera.fov * Math.PI) / 360)
         camera.updateProjectionMatrix()
         const mobile = vw < 768
-        let w = mobile ? vw * 0.74 : Math.min(vw * 0.36, 580)
+        // Su mobile la card è il protagonista: quasi tutta la larghezza,
+        // con le vicine che spuntano appena dai lati
+        let w = mobile ? vw * 0.84 : Math.min(vw * 0.36, 580)
         let h = w / 1.5
-        const maxH = vh * (mobile ? 0.3 : 0.42)
+        // Sui telefoni bassi scheda e comandi occupano più spazio in proporzione
+        const maxH = vh * (mobile ? (vh < 720 ? 0.26 : 0.32) : 0.42)
         if (h > maxH) { h = maxH; w = h * 1.5 }
         layout = { w, h, mobile, vw, vh }
         cards.forEach(buildCloth)
@@ -287,11 +290,16 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
         return hits[0] || null
       }
 
-      const onPointerMove = (e) => {
+      const setNdc = (e) => {
         const rect = canvas.getBoundingClientRect()
         const x = e.clientX - rect.left
         const y = e.clientY - rect.top
         pointer.ndc.set((x / rect.width) * 2 - 1, -(y / rect.height) * 2 + 1)
+        return { x, y, rect }
+      }
+
+      const onPointerMove = (e) => {
+        const { x, y, rect } = setNdc(e)
         if (pointer.inside) {
           pointer.dx += x - pointer.lastX
           pointer.dy -= y - pointer.lastY
@@ -311,7 +319,33 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
         motion.pointerX = 0
         motion.pointerY = 0
       }
-      const onClick = () => {
+      // Swipe orizzontale col dito: progetto successivo / precedente.
+      // touch-pan-y lascia lo scroll verticale al browser, quindi qui
+      // arrivano solo i gesti di lato
+      const swipe = { id: null, x: 0, y: 0, at: 0 }
+      const onPointerDown = (e) => {
+        if (e.pointerType === 'mouse') return
+        swipe.id = e.pointerId
+        swipe.x = e.clientX
+        swipe.y = e.clientY
+      }
+      const onPointerUp = (e) => {
+        if (e.pointerId !== swipe.id) return
+        swipe.id = null
+        const dx = e.clientX - swipe.x
+        const dy = e.clientY - swipe.y
+        if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.5) return
+        swipe.at = performance.now()
+        const next = clamp(apiRef.current.active + (dx < 0 ? 1 : -1), 0, count - 1)
+        if (next !== apiRef.current.active) apiRef.current.goTo?.(next)
+      }
+      const onPointerCancel = () => { swipe.id = null }
+
+      const onClick = (e) => {
+        // Il tap che chiude uno swipe non apre il progetto
+        if (performance.now() - swipe.at < 400) return
+        // Al tocco non c'è un pointermove prima del click: la posizione va presa qui
+        setNdc(e)
         const hit = pick()
         if (!hit) return
         const { index } = hit.object.userData.card
@@ -330,7 +364,8 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
         const ad = Math.abs(d)
         const light = clamp(1 - ad * 1.15, 0, 1)
         if (mobile) {
-          dummy.position.set(d * w * 0.86, d * h * 0.32 - h * 0.18, -ad * w * 0.7)
+          // Centrata nello spazio libero tra la scheda in alto e i comandi in basso
+          dummy.position.set(d * w * 0.86, d * h * 0.32 - h * 0.04, -ad * w * 0.7)
         } else {
           dummy.position.set(d * w * 0.9 + w * 0.32, d * h * 0.45 - ad * ad * h * 0.06, -ad * w * 0.5)
         }
@@ -550,6 +585,9 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
       canvas.addEventListener('pointermove', onPointerMove)
       canvas.addEventListener('pointerleave', onPointerLeave)
       canvas.addEventListener('click', onClick)
+      canvas.addEventListener('pointerdown', onPointerDown)
+      canvas.addEventListener('pointerup', onPointerUp)
+      canvas.addEventListener('pointercancel', onPointerCancel)
 
       apiRef.current.setBg = (hex, dark) => {
         bg.set(hex)
@@ -564,6 +602,9 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
         canvas.removeEventListener('pointermove', onPointerMove)
         canvas.removeEventListener('pointerleave', onPointerLeave)
         canvas.removeEventListener('click', onClick)
+        canvas.removeEventListener('pointerdown', onPointerDown)
+        canvas.removeEventListener('pointerup', onPointerUp)
+        canvas.removeEventListener('pointercancel', onPointerCancel)
         cards.forEach((c) => { c.geometry?.dispose(); c.material.dispose(); c.texture?.dispose() })
         renderer.dispose()
       }
@@ -635,7 +676,7 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
                 Selected work
               </span>
               <div className="overflow-hidden">
-                <h2 key={current?.id} className={`slides-swap text-3xl md:text-5xl font-semibold tracking-tight leading-[1.05] ${cTextMain}`}>
+                <h2 key={current?.id} className={`slides-swap text-4xl md:text-5xl font-semibold tracking-tight leading-[1.05] truncate ${cTextMain}`}>
                   {current?.title}
                 </h2>
               </div>
@@ -644,7 +685,8 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
                   <dt className={`text-xs font-semibold uppercase tracking-widest ${cTextMuted} pt-0.5`}>Category</dt>
                   <dd key={`c-${current?.id}`} className="slides-swap text-right">{current?.category}</dd>
                 </div>
-                <div className="flex justify-between gap-4 py-2 border-t border-[#ff2b1c]/40">
+                {/* Su mobile il contatore sta accanto alle tacche, in basso */}
+                <div className="hidden md:flex justify-between gap-4 py-2 border-t border-[#ff2b1c]/40">
                   <dt className={`text-xs font-semibold uppercase tracking-widest ${cTextMuted} pt-0.5`}>Project</dt>
                   <dd className="tabular-nums">{pad(active + 1)} / {pad(count)}</dd>
                 </div>
@@ -657,20 +699,35 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
             </div>
 
             {/* Una tacca per ogni progetto + azioni */}
-            <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-5">
-              <div className="flex items-end gap-1.5" aria-hidden="true">
-                {projects.map((p, i) => (
-                  <span
-                    key={p.id}
-                    className={`w-[3px] transition-all duration-500 ${i === active ? 'h-6 bg-[#ff2b1c]' : 'h-3 bg-[#ff2b1c]/35'}`}
-                  />
-                ))}
+            <div className="flex flex-col md:flex-row items-stretch md:items-end justify-between gap-4 md:gap-5">
+              <div className="flex items-end justify-between gap-4">
+                {/* Le tacche portano al progetto (le aree di tocco sono più larghe del segno);
+                    tastiera e lettori di schermo usano l'elenco nascosto sopra */}
+                <div className="pointer-events-auto flex items-end" aria-hidden="true">
+                  {projects.map((p, i) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      tabIndex={-1}
+                      onClick={() => goTo(i)}
+                      className="group/tick h-8 w-4 flex items-end justify-start"
+                    >
+                      <span
+                        className={`w-[3px] transition-all duration-500 ${i === active ? 'h-6 bg-[#ff2b1c]' : 'h-3 bg-[#ff2b1c]/35 group-hover/tick:bg-[#ff2b1c]/70'}`}
+                      />
+                    </button>
+                  ))}
+                </div>
+                <p className={`md:hidden text-xs font-semibold uppercase tracking-widest tabular-nums ${cTextMuted}`}>
+                  <span className={cTextMain}>{pad(active + 1)}</span> / {pad(count)} · Swipe
+                </p>
               </div>
-              <div className="pointer-events-auto flex flex-wrap gap-3">
+              {/* md:mr-20: su desktop i bottoni stanno alla quota del "+" e gli lasciano spazio */}
+              <div className="pointer-events-auto grid grid-cols-2 gap-3 md:flex md:flex-wrap md:mr-20">
                 {current && (
                   <Link
                     to={`/progetti/${current.slug || current.id}`}
-                    className="group flex items-center gap-2 px-6 py-3 border-[3px] border-[#ff2b1c] bg-[#ff2b1c] text-black font-semibold text-sm md:text-base hover:bg-transparent hover:text-[#ff2b1c] active:scale-95 transition-colors duration-200"
+                    className="rounded-full group flex items-center justify-center gap-2 whitespace-nowrap px-4 md:px-6 py-3 border-[3px] border-[#ff2b1c] bg-[#ff2b1c] text-black font-semibold text-sm md:text-base hover:bg-transparent hover:text-[#ff2b1c] active:scale-95 transition-colors duration-200"
                   >
                     Open project
                     <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
@@ -678,7 +735,7 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
                 )}
                 <Link
                   to="/progetti"
-                  className="hero-btn-red group flex items-center gap-2 px-6 py-3 border-[3px] border-[#ff2b1c] bg-transparent text-[#ff2b1c] font-semibold text-sm md:text-base active:scale-95 transition-colors duration-200"
+                  className="rounded-full hero-btn-red group flex items-center justify-center gap-2 whitespace-nowrap px-4 md:px-6 py-3 border-[3px] border-[#ff2b1c] bg-transparent text-[#ff2b1c] font-semibold text-sm md:text-base active:scale-95 transition-colors duration-200"
                 >
                   View archive
                 </Link>
