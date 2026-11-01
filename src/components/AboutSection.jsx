@@ -1,33 +1,99 @@
-import React, { useEffect, useRef, useState } from 'react'
-import { ArrowUpRight } from 'lucide-react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { ArrowUpRight, Pause, Play, RotateCcw } from 'lucide-react'
 import { getLenis, setWheelInterceptor } from '../lib/smoothScroll.js'
 
 // --- CHI SONO: LA STANZA ROSSA ---
 // Atmosfera alla David Lynch: un sipario di velluto si apre su una stanza con
 // tende cremisi e pavimento a zig-zag, una luce che tremola, grana di pellicola.
-// La scena resta fissata al centro dello schermo; scorrendo, i testi compaiono
-// uno alla volta come didascalie: emergono dal buio sfocati, restano, svaniscono.
-// Il titolo appare prima specchiato e poi si raddrizza.
 //
-// Ogni scena ha data-from / data-to: la parte dello scroll della sezione (0..1)
-// in cui è visibile. L'ultima (data-last) non svanisce.
-//
-// Con la rotella non c'è scroll intermedio: ogni gesto porta alla scena dopo
-// (o prima) con un'animazione. Sui touch ci pensano i punti di aggancio CSS.
+// Lo scroll serve solo ad aprire il sipario (con la rotella basta un gesto).
+// Poi la stanza resta ferma e le didascalie scorrono da sole, come un film:
+// emergono dal buio sfocate, restano il tempo di leggerle, svaniscono. Il
+// titolo appare prima specchiato e poi si raddrizza. In basso una pellicola
+// a segmenti mostra dove si è: si può saltare a una scena, mettere in pausa,
+// o andare ai contatti. Scrollando si esce quando si vuole.
 
 const clamp01 = (v) => Math.min(Math.max(v, 0), 1)
 const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2)
-const easeOut = (t) => 1 - Math.pow(1 - t, 3)
 
-const CURTAIN_END = 0.12 // il sipario è tutto aperto a questo punto dello scroll
-const SNAP_S = 1.15 // durata del passaggio da una scena all'altra, in secondi
+const CURTAIN_END = 0.8 // il sipario è tutto aperto a questo punto dello scroll
+const SNAP_S = 1.15 // durata dell'apertura (o chiusura) con la rotella, in secondi
 const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
+// Punti di aggancio per lo scroll a dito: sipario chiuso, sipario aperto
+const SNAP_POINTS = [0, 1]
+const pad = (n) => String(n).padStart(2, '0')
 
-// Le fermate: sipario chiuso, il centro di ogni scena, la fine della sezione
-const sceneStop = (from, to, last) => (last ? from + (to - from) * 0.6 : (from + to) / 2)
-// Fermate delle scene qui sotto (data-from / data-to), per l'aggancio touch
-const SCENES = [[0.12, 0.27], [0.27, 0.42], [0.42, 0.57], [0.57, 0.72], [0.72, 0.86], [0.86, 0.97, true]]
-const SNAP_POINTS = [0, ...SCENES.map(([f, t, last]) => sceneStop(f, t, last)), 1]
+const label = 'block text-xs font-semibold uppercase tracking-[0.35em] text-[#f3ead7]/85'
+const body = 'text-lg md:text-2xl font-medium leading-relaxed text-[#f3ead7]'
+const mark = 'text-white font-semibold underline decoration-[#ff2b1c] decoration-2 underline-offset-4'
+
+// Le didascalie, in ordine. ms: quanto resta sullo schermo (circa il tempo di
+// leggerla); l'ultima resta finché non si riparte
+const SCENES = [
+  {
+    ms: 4200,
+    content: (
+      <>
+        <span className={label}>About</span>
+        <h2 className="mt-6 text-4xl md:text-7xl leading-[1.05] text-[#f3ead7] lynch-glow">
+          <span data-flip className="inline-block">Designer,<br /><span className="text-[#f3ead7]/60">class of ’97.</span></span>
+        </h2>
+      </>
+    ),
+  },
+  {
+    ms: 11000,
+    content: (
+      <p className={`${body} max-w-2xl lynch-glow`}>
+        Nato in <strong className={mark}>Sardegna</strong>, inizio il mio percorso nelle arti visive attraverso la fotografia. Negli anni ho espanso questo linguaggio collaborando con diversi artisti, sviluppando competenze trasversali in videomaking, post-produzione, grafica e direzione multimediale.
+      </p>
+    ),
+  },
+  {
+    ms: 10000,
+    content: (
+      <p className={`${body} max-w-2xl lynch-glow`}>
+        Nel <strong className={mark}>2023</strong> conseguo la laurea in <strong className={mark}>Economia e Management</strong>, tornando al mondo visivo con un approccio più strutturato, strategico e orientato al business: dal 3D modeling al web design e front-end engineering.
+      </p>
+    ),
+  },
+  {
+    ms: 9000,
+    content: (
+      <>
+        <p className="max-w-3xl text-2xl md:text-4xl font-semibold leading-snug text-[#f3ead7] lynch-glow">
+          Unisco tutto questo in un sistema compatto: visione, tecnica e direzione.
+        </p>
+        <p className="mt-6 max-w-xl text-base md:text-lg leading-relaxed text-[#f3ead7]/90 lynch-glow">
+          Un mix diretto, progettato per comunicare. Posso aiutarti a strutturare una comunicazione efficace e multi-piattaforma per il tuo business, progetto o evento.
+        </p>
+      </>
+    ),
+  },
+  {
+    ms: 7000,
+    content: (
+      <>
+        <span className={label}>Design + Code · Full-Stack</span>
+        <h3 className="mt-5 text-4xl md:text-6xl text-[#f3ead7] lynch-glow">End-to-End</h3>
+        <p className="mt-5 max-w-lg text-base md:text-xl leading-relaxed text-[#f3ead7]/90 lynch-glow">
+          Dall'identità visiva e 3D fino allo sviluppo front-end moderno: un unico riferimento per l'intero ecosistema digitale.
+        </p>
+      </>
+    ),
+  },
+  {
+    content: (
+      <>
+        <span className={`${label} flex items-center gap-3`}>
+          <span className="w-2 h-2 rounded-full bg-[#ff2b1c] lynch-flicker" /> Available for projects
+        </span>
+        <p className="mt-5 text-lg md:text-2xl text-[#f3ead7] lynch-glow">Porto Torres, Sardegna · Remote & on-site</p>
+      </>
+    ),
+  },
+]
+const LAST = SCENES.length - 1
 
 // Velluto: un rumore stirato in verticale fa da rilievo delle pieghe (larghe
 // e irregolari), illuminato di lato e moltiplicato per il cremisi di base.
@@ -177,8 +243,51 @@ const Velvet = ({ id, seed, freq = '0.011 0.0006' }) => {
   )
 }
 
+
 export default function AboutSection({ onContact }) {
   const sectionRef = useRef(null)
+  const barRef = useRef(null)
+  const fillsRef = useRef([])
+  const elapsedRef = useRef(0)
+  const [started, setStarted] = useState(false) // sipario aperto: il film gira
+  const [inView, setInView] = useState(false)
+  const [playing, setPlaying] = useState(true)
+  const [current, setCurrent] = useState(0)
+
+  // Porta alla scena i, col suo segmento di pellicola da riempire da capo
+  const go = useCallback((i) => {
+    elapsedRef.current = 0
+    const fill = fillsRef.current[i]
+    if (fill) fill.style.transform = ''
+    setCurrent(i)
+  }, [])
+
+  // Sipario richiuso: il film si riavvolge
+  useEffect(() => {
+    if (started) return
+    go(0)
+    setPlaying(true)
+  }, [started, go])
+
+  // Il tempo della scena: riempie il segmento e poi passa alla successiva.
+  // Si ferma in pausa, a sezione fuori schermo e sull'ultima scena
+  useEffect(() => {
+    if (!started || !inView || !playing || current >= LAST) return
+    const fill = fillsRef.current[current]
+    let raf = 0
+    let last = performance.now()
+    const tick = (now) => {
+      // Al massimo 100ms per frame: tornando da un'altra scheda non salta avanti
+      elapsedRef.current += Math.min(now - last, 100)
+      last = now
+      const k = Math.min(elapsedRef.current / SCENES[current].ms, 1)
+      fill.style.transform = `scaleX(${k})`
+      if (k < 1) raf = requestAnimationFrame(tick)
+      else go(current + 1)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [started, inView, playing, current, go])
 
   useEffect(() => {
     const section = sectionRef.current
@@ -189,16 +298,8 @@ export default function AboutSection({ onContact }) {
     const intro = q('[data-intro]')
     const floor = q('[data-floor]')
     const room = q('[data-room]')
-    // Dati delle didascalie letti una volta sola; "last" ricorda l'ultimo stato
-    // scritto, così a ogni frame si tocca solo lo stile che cambia davvero
-    const scenes = [...section.querySelectorAll('[data-scene]')].map((el) => ({
-      el,
-      from: parseFloat(el.dataset.from),
-      to: parseFloat(el.dataset.to),
-      last: el.dataset.last !== undefined,
-      flip: el.querySelector('[data-flip]'),
-      prev: { op: -1, y: null, flip: null },
-    }))
+    const bar = barRef.current
+    let isOpen = false
 
     let raf = 0
     const update = () => {
@@ -212,46 +313,30 @@ export default function AboutSection({ onContact }) {
       curtainL.style.transform = `scaleX(${1 - 0.86 * open})`
       curtainR.style.transform = `scaleX(${1 - 0.86 * open})`
       intro.style.opacity = String(1 - clamp01(open * 2.5))
+      // La pellicola compare a sipario quasi aperto (da nascosta esce dal giro del Tab)
+      const barOp = clamp01((open - 0.6) / 0.4)
+      bar.style.opacity = String(barOp)
+      bar.style.visibility = barOp > 0 ? '' : 'hidden'
 
       // Lenta carrellata in avanti dentro la stanza
       room.style.transform = `scale(${1 + 0.12 * p})`
       floor.style.transform = `rotateX(62deg) translateY(${p * 18}%)`
 
-      for (const s of scenes) {
-        const { el, from, to, last, flip, prev } = s
-        const t = (p - from) / (to - from)
-        let op = 0
-        if (t >= 0 && (t <= 1 || last)) op = clamp01(Math.min(1, t / 0.3, last ? 1 : (1 - t) / 0.3))
-        const y = `translateY(${(1 - op) * (t < 0.5 ? 14 : -14)}px)`
-        if (op !== prev.op) {
-          const fading = op > 0 && op < 1
-          // Spenta del tutto: nascosta, così il browser non ridisegna testi e ombre
-          el.style.visibility = op > 0 ? '' : 'hidden'
-          el.style.opacity = String(op)
-          el.style.filter = fading ? `blur(${(1 - op) * 10}px)` : ''
-          // Solo mentre sfuma ha un livello suo: sfocatura e opacità le applica la
-          // GPU senza ridisegnare i testi con l'alone a ogni frame
-          el.style.willChange = fading ? 'opacity, transform, filter' : ''
-          el.style.pointerEvents = op > 0.6 ? 'auto' : 'none'
-          prev.op = op
-        }
-        if (y !== prev.y) { el.style.transform = y; prev.y = y }
-        // Il titolo: specchiato all'inizio, si raddrizza girando su se stesso
-        if (flip) {
-          const f = `scaleX(${-1 + 2 * easeOut(clamp01(t / 0.4))})`
-          if (f !== prev.flip) { flip.style.transform = f; prev.flip = f }
-        }
-      }
+      // Parte a sipario aperto, si riavvolge a sipario chiuso (in mezzo non cambia,
+      // così un piccolo scroll non lo fa ripartire)
+      if (!isOpen && open >= 0.9) { isOpen = true; setStarted(true) }
+      else if (isOpen && open <= 0.1) { isOpen = false; setStarted(false) }
     }
     const schedule = () => { if (!raf) raf = requestAnimationFrame(update) }
 
-    // --- Scatto da una scena all'altra con la rotella ---
-    const stops = [0, ...scenes.map((s) => sceneStop(s.from, s.to, s.last)), 1]
+    // --- Con la rotella: un gesto apre il sipario, uno lo richiude ---
     let snapping = false
+    let swallowing = false // la coda d'inerzia del gesto che ha fatto scattare
     let lastWheel = 0
     let lastAbs = 0
     const snap = (lenis, y) => {
       snapping = true
+      swallowing = true
       lenis.scrollTo(y, {
         duration: SNAP_S,
         easing: easeInOutCubic,
@@ -263,43 +348,38 @@ export default function AboutSection({ onContact }) {
     const intercept = ({ deltaY, event }) => {
       const lenis = getLenis()
       if (!lenis || !event.type.includes('wheel') || event.ctrlKey || !deltaY) return false
-      if (snapping) { event.preventDefault(); return true }
       // Un gesto nuovo: una pausa, o una spinta più forte della coda d'inerzia
       const now = performance.now()
       const abs = Math.abs(deltaY)
       const fresh = now - lastWheel > 160 || abs > lastAbs * 1.6 + 4
       lastWheel = now
       lastAbs = abs
+      // Durante lo scatto, e finché dura il gesto che l'ha lanciato, la rotella è nostra
+      if (snapping || (swallowing && !fresh)) { event.preventDefault(); return true }
+      swallowing = false
       const top = section.getBoundingClientRect().top + window.scrollY
-      const span = section.offsetHeight - window.innerHeight
-      if (span <= 0) return false
-      const dir = Math.sign(deltaY)
-      const p = (lenis.animatedScroll - top) / span
-      // Da fuori: entrando ci si aggancia al bordo della sezione
-      if (p < -0.001) {
-        if (dir > 0 && lenis.targetScroll + deltaY >= top) { event.preventDefault(); snap(lenis, top); return true }
-        return false
-      }
-      if (p > 1.001) {
-        if (dir < 0 && lenis.targetScroll + deltaY <= top + span) { event.preventDefault(); snap(lenis, top + span); return true }
-        return false
-      }
-      // Ai due capi si esce con lo scroll normale
-      if ((dir < 0 && p <= 0.002) || (dir > 0 && p >= 0.998)) return false
+      const end = top + section.offsetHeight - window.innerHeight // sipario aperto
+      if (end <= top) return false
+      const pos = lenis.animatedScroll
+      const next = lenis.targetScroll + deltaY
+      let to = null
+      // Scendendo: arrivati al sipario (o a metà apertura) si va a sipario aperto
+      if (deltaY > 0 && pos < end - 2 && next > top) to = end
+      // Risalendo dai contatti ci si ferma sulla stanza; dalla stanza il sipario si chiude
+      else if (deltaY < 0 && pos > top + 2 && next < end) to = pos > end + 2 ? end : top
+      if (to === null) return false
       event.preventDefault()
-      if (!fresh) return true
-      const next = dir > 0
-        ? stops.find((s) => s > p + 0.01) ?? 1
-        : [...stops].reverse().find((s) => s < p - 0.01) ?? 0
-      snap(lenis, top + next * span)
+      snap(lenis, to)
       return true
     }
 
     // Ascolta lo scroll solo quando la sezione è vicina allo schermo; lontano
-    // dallo schermo mette in pausa anche le animazioni infinite (tende, luce, grana)
+    // dallo schermo mette in pausa anche le animazioni infinite (tende, luce,
+    // grana) e il film
     let listening = false
     const io = new IntersectionObserver(([entry]) => {
       section.classList.toggle('lynch-idle', !entry.isIntersecting)
+      setInView(entry.isIntersecting)
       if (entry.isIntersecting && !listening) {
         window.addEventListener('scroll', schedule, { passive: true })
         window.addEventListener('resize', schedule)
@@ -326,18 +406,24 @@ export default function AboutSection({ onContact }) {
     }
   }, [])
 
-  const label = 'block text-xs font-semibold uppercase tracking-[0.35em] text-[#f3ead7]/85'
-  const body = 'text-lg md:text-2xl font-medium leading-relaxed text-[#f3ead7]'
-  const scene = 'absolute inset-0 flex flex-col items-center justify-center text-center px-6 opacity-0 pointer-events-none'
+  const ended = current === LAST
+  const toggle = () => {
+    if (ended) { go(0); setPlaying(true) } else setPlaying((v) => !v)
+  }
 
   return (
-    <section ref={sectionRef} data-nav-surface="velvet" className="relative z-10 bg-black h-[480vh]">
+    // Su mobile il sipario si apre in poco meno di mezzo schermo di scroll
+    <section ref={sectionRef} data-nav-surface="velvet" aria-label="About" className="relative z-10 bg-black h-[145svh] md:h-[200vh]">
       {/* Il menu porta a sipario già aperto, sulla prima didascalia */}
-      <div id="bio" aria-hidden="true" className="absolute left-0 top-[calc((100%-100svh)*0.195)]" />
-      {/* Punti di aggancio per lo scroll a dito, uno per fermata */}
+      <div id="bio" aria-hidden="true" className="absolute left-0 top-[calc(100%-100svh)]" />
+      {/* Punti di aggancio per lo scroll a dito */}
       {SNAP_POINTS.map((p) => (
         <div key={p} aria-hidden="true" className="about-snap absolute left-0 h-px w-px" style={{ top: `calc((100% - 100svh) * ${p})` }} />
       ))}
+      {/* Tutto il testo per chi usa un lettore di schermo, senza aspettare il film */}
+      <div className="sr-only">
+        {SCENES.map((s, i) => <div key={i}>{s.content}</div>)}
+      </div>
 
       <div className="sticky top-0 h-[100svh] overflow-hidden">
         {/* La stanza: tende sul fondo e pavimento a zig-zag */}
@@ -355,57 +441,16 @@ export default function AboutSection({ onContact }) {
           <div className="lynch-scrim absolute inset-0" />
         </div>
 
-        {/* Didascalie */}
-        <div className="absolute inset-0">
-          <div data-scene data-from="0.12" data-to="0.27" className={scene}>
-            <span className={label}>About</span>
-            <h2 className="mt-6 text-4xl md:text-7xl leading-[1.05] text-[#f3ead7] lynch-glow">
-              <span data-flip className="inline-block will-change-transform">Designer,<br /><span className="text-[#f3ead7]/60">class of ’97.</span></span>
-            </h2>
-          </div>
-
-          <div data-scene data-from="0.27" data-to="0.42" className={scene}>
-            <p className={`${body} max-w-2xl lynch-glow`}>
-              Nato in <strong className="text-white font-semibold underline decoration-[#ff2b1c] decoration-2 underline-offset-4">Sardegna</strong>, inizio il mio percorso nelle arti visive attraverso la fotografia. Negli anni ho espanso questo linguaggio collaborando con diversi artisti, sviluppando competenze trasversali in videomaking, post-produzione, grafica e direzione multimediale.
-            </p>
-          </div>
-
-          <div data-scene data-from="0.42" data-to="0.57" className={scene}>
-            <p className={`${body} max-w-2xl lynch-glow`}>
-              Nel <strong className="text-white font-semibold underline decoration-[#ff2b1c] decoration-2 underline-offset-4">2023</strong> conseguo la laurea in <strong className="text-white font-semibold underline decoration-[#ff2b1c] decoration-2 underline-offset-4">Economia e Management</strong>, tornando al mondo visivo con un approccio più strutturato, strategico e orientato al business: dal 3D modeling al web design e front-end engineering.
-            </p>
-          </div>
-
-          <div data-scene data-from="0.57" data-to="0.72" className={scene}>
-            <p className="max-w-3xl text-2xl md:text-4xl font-semibold leading-snug text-[#f3ead7] lynch-glow">
-              Unisco tutto questo in un sistema compatto: visione, tecnica e direzione.
-            </p>
-            <p className="mt-6 max-w-xl text-base md:text-lg leading-relaxed text-[#f3ead7]/90 lynch-glow">
-              Un mix diretto, progettato per comunicare. Posso aiutarti a strutturare una comunicazione efficace e multi-piattaforma per il tuo business, progetto o evento.
-            </p>
-          </div>
-
-          <div data-scene data-from="0.72" data-to="0.86" className={scene}>
-            <span className={label}>Design + Code · Full-Stack</span>
-            <h3 className="mt-5 text-4xl md:text-6xl text-[#f3ead7] lynch-glow">End-to-End</h3>
-            <p className="mt-5 max-w-lg text-base md:text-xl leading-relaxed text-[#f3ead7]/90 lynch-glow">
-              Dall'identità visiva e 3D fino allo sviluppo front-end moderno: un unico riferimento per l'intero ecosistema digitale.
-            </p>
-          </div>
-
-          <div data-scene data-last data-from="0.86" data-to="0.97" className={scene}>
-            <span className={`${label} flex items-center gap-3`}>
-              <span className="w-2 h-2 rounded-full bg-[#ff2b1c] lynch-flicker" /> Available for projects
-            </span>
-            <p className="mt-5 text-lg md:text-2xl text-[#f3ead7] lynch-glow">Porto Torres, Sardegna · Remote & on-site</p>
-            <button
-              onClick={onContact}
-              className="mt-10 group flex items-center gap-3 px-7 py-3.5 border border-[#f3ead7]/60 text-[#f3ead7] text-sm uppercase tracking-[0.3em] hover:bg-[#f3ead7] hover:text-black focus-visible:bg-[#f3ead7] focus-visible:text-black transition-colors duration-500"
+        {/* Didascalie: una alla volta (le transizioni sono in index.css) */}
+        <div aria-hidden="true" className="absolute inset-0">
+          {SCENES.map((s, i) => (
+            <div
+              key={i}
+              className={`lynch-scene absolute inset-0 flex flex-col items-center justify-center text-center px-6 pb-36 md:pb-16 pointer-events-none ${started && i === current ? 'is-active' : i < current ? 'is-past' : ''}`}
             >
-              Get in touch
-              <ArrowUpRight size={16} />
-            </button>
-          </div>
+              {s.content}
+            </div>
+          ))}
         </div>
 
         {/* Il sipario davanti, chiuso all'inizio */}
@@ -417,6 +462,56 @@ export default function AboutSection({ onContact }) {
         </div>
         <div data-intro aria-hidden="true" className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <span className="text-xs font-semibold uppercase tracking-[0.5em] text-[#f3ead7]/80 lynch-glow">About</span>
+        </div>
+
+        {/* Pellicola: un segmento per scena, pausa, contatti. Su mobile sta sopra il "+" */}
+        <div ref={barRef} className="absolute inset-x-0 bottom-24 md:bottom-8 z-10 px-6">
+          <div className="mx-auto max-w-xl">
+            <div className="flex gap-1.5">
+              {SCENES.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => go(i)}
+                  aria-label={`Scena ${i + 1} di ${SCENES.length}`}
+                  aria-current={i === current ? 'step' : undefined}
+                  className="group flex-1 py-3 -my-3"
+                >
+                  <span className="block h-[3px] rounded-full overflow-hidden bg-[#f3ead7]/25 group-hover:bg-[#f3ead7]/45 transition-colors">
+                    <span
+                      ref={(el) => { fillsRef.current[i] = el }}
+                      className="lynch-progress block h-full bg-[#f3ead7]"
+                      // Il segmento della scena in corso lo riempie il timer
+                      style={i === current && i < LAST ? undefined : { transform: `scaleX(${i <= current ? 1 : 0})` }}
+                    />
+                  </span>
+                </button>
+              ))}
+            </div>
+            <div className="mt-4 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 text-[#f3ead7]">
+                <button
+                  type="button"
+                  onClick={toggle}
+                  aria-label={ended ? 'Rivedi da capo' : playing ? 'Metti in pausa' : 'Riprendi'}
+                  className="-m-2 w-10 h-10 grid place-items-center rounded-full hover:bg-[#f3ead7]/10 focus-visible:bg-[#f3ead7]/10 transition-colors"
+                >
+                  {ended ? <RotateCcw size={16} /> : playing ? <Pause size={16} /> : <Play size={16} />}
+                </button>
+                <span className="text-xs font-semibold tracking-[0.3em] tabular-nums text-[#f3ead7]/85 lynch-glow">
+                  {pad(current + 1)} / {pad(SCENES.length)}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={onContact}
+                className="rounded-full inline-flex items-center gap-2 px-5 py-2.5 border-[3px] border-[#f3ead7] text-[#f3ead7] text-xs font-semibold uppercase tracking-[0.25em] hover:bg-[#f3ead7] hover:text-black focus-visible:bg-[#f3ead7] focus-visible:text-black active:scale-95 transition-colors duration-300"
+              >
+                Get in touch
+                <ArrowUpRight size={14} />
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Pellicola: grana e vignettatura sopra tutto */}

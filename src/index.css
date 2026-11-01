@@ -64,7 +64,7 @@ h1, h2, h3, .font-display {
 /* --- TITOLO DELLA HERO CHE SI FA FUMO --- */
 .smoke-letter { display: inline-block; }
 
-/* --- CHI SONO: punti di aggancio per lo scroll a dito ---
+/* --- CHI SONO: punti di aggancio per lo scroll a dito (sipario chiuso / aperto) ---
    Con la rotella lo scatto lo gestisce il componente; sui touch il browser */
 @media (pointer: coarse) {
   html { scroll-snap-type: y proximity; }
@@ -208,6 +208,32 @@ h1, h2, h3, .font-display {
 .lynch-vignette { background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, 0.88) 100%); }
 /* Testo leggibile sopra velluto e pavimento: alone scuro morbido */
 .lynch-glow { text-shadow: 0 0 28px rgba(0, 0, 0, 0.95), 0 0 6px rgba(0, 0, 0, 0.9); }
+/* Didascalie a tempo: una alla volta. Quella che esce sale e si sfoca;
+   la nuova aspetta che sia sparita, poi emerge dal buio dal basso */
+.lynch-scene {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(14px);
+  filter: blur(10px);
+  transition: opacity 0.6s ease, transform 0.6s ease, filter 0.6s ease, visibility 0s linear 0.6s;
+}
+.lynch-scene.is-past { transform: translateY(-14px); }
+.lynch-scene.is-active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  filter: blur(0);
+  transition: opacity 0.9s ease 0.5s, transform 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.5s, filter 0.9s ease 0.5s, visibility 0s linear 0.5s;
+}
+/* Il titolo: specchiato all'inizio, si raddrizza girando su se stesso */
+.lynch-scene [data-flip] { transform: scaleX(-1); transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1); }
+.lynch-scene.is-active [data-flip] { transform: scaleX(1); transition-delay: 0.7s; }
+/* Segmento della pellicola: lo riempie il timer della scena */
+.lynch-progress { transform: scaleX(0); transform-origin: left; }
+@media (prefers-reduced-motion: reduce) {
+  .lynch-scene, .lynch-scene.is-past, .lynch-scene.is-active { transform: none; filter: none; }
+  .lynch-scene [data-flip] { transform: none; }
+}
 
 /* Pannello laterale */
 .punk-panel { transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1); }

@@ -290,7 +290,11 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
         const p = span > 0 ? clamp(-rect.top / span, 0, 1) : 0
         const raw = p * (count - 1)
         const base = Math.floor(raw)
-        return Math.min(base + smoothstep(0.2, 0.8, raw - base), count - 1)
+        // Tra una card e l'altra c'è un tratto di scroll in cui la card resta
+        // ferma al centro. Su mobile è più corto: con la colonna verticale
+        // sembrava di scorrere a vuoto
+        const [a, b] = layout.mobile ? [0.1, 0.9] : [0.2, 0.8]
+        return Math.min(base + smoothstep(a, b, raw - base), count - 1)
       }
 
       const pick = () => {
@@ -636,8 +640,9 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
     <section
       id="projects"
       ref={sectionRef}
-      className={`relative w-full ${isDark ? 'slides-dark' : 'slides-light'}`}
-      style={{ height: `${100 + Math.max(count - 1, 1) * 60}vh` }}
+      // Scroll per card: 45vh su mobile (le card sono più vicine), 60vh da tablet in su
+      className={`relative w-full h-[calc(100vh_+_var(--steps)_*_45vh)] md:h-[calc(100vh_+_var(--steps)_*_60vh)] ${isDark ? 'slides-dark' : 'slides-light'}`}
+      style={{ '--steps': Math.max(count - 1, 1) }}
     >
       {/* 100lvh: la scena riempie lo schermo anche a barre del browser chiuse
           (con 100svh restava una fascia vuota in fondo) e non cambia altezza
