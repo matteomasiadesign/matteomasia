@@ -33,6 +33,10 @@ export default function HeroElephants() {
     const still =
       window.matchMedia('(prefers-reduced-motion: reduce)').matches || navigator.connection?.saveData === true
     if (still) return
+    // iOS fa partire da solo solo i video muti: React non scrive l'attributo
+    // "muted" nell'HTML, quindi lo si mette a mano
+    video.muted = true
+    video.setAttribute('muted', '')
     // Il video (1 MB) si scarica solo a pagina caricata: fino ad allora resta il
     // primo fotogramma, identico all'inizio del video. Poi gira solo mentre la
     // hero è visibile
@@ -73,8 +77,9 @@ export default function HeroElephants() {
       poster={variant ? `${SRC}${variant}.jpg` : undefined}
       className="absolute inset-0 w-full h-full object-cover pointer-events-none mix-blend-multiply"
     >
-      {variant && <source src={`${SRC}${variant}.webm`} type="video/webm" />}
-      {variant && <source src={`${SRC}${variant}.mp4`} type="video/mp4" />}
+      {/* Codec dichiarati: Safari che non decodifica il VP9 salta al MP4 invece di fermarsi */}
+      {variant && <source src={`${SRC}${variant}.webm`} type='video/webm; codecs="vp9"' />}
+      {variant && <source src={`${SRC}${variant}.mp4`} type='video/mp4; codecs="avc1.640032"' />}}
     </video>
   )
 }
