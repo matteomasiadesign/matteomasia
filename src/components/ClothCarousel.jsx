@@ -258,13 +258,14 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
         camera.position.z = vh / 2 / Math.tan((camera.fov * Math.PI) / 360)
         camera.updateProjectionMatrix()
         const mobile = vw < 768
-        // Su mobile la card è il protagonista: quasi tutta la larghezza,
-        // con le vicine che spuntano appena dai lati
-        let w = mobile ? vw * 0.84 : Math.min(vw * 0.36, 580)
-        let h = w / 1.5
+        // Su mobile le card scorrono in verticale come lo scroll: stampe
+        // verticali larghe quasi quanto lo schermo, le vicine sopra e sotto
+        const ratio = mobile ? 1 / 1.1 : 1.5
+        let w = mobile ? vw * 0.8 : Math.min(vw * 0.36, 580)
+        let h = w / ratio
         // Sui telefoni bassi scheda e comandi occupano più spazio in proporzione
-        const maxH = vh * (mobile ? (vh < 720 ? 0.26 : 0.32) : 0.42)
-        if (h > maxH) { h = maxH; w = h * 1.5 }
+        const maxH = vh * (mobile ? (vh < 720 ? 0.34 : 0.4) : 0.42)
+        if (h > maxH) { h = maxH; w = h * ratio }
         layout = { w, h, mobile, vw, vh }
         cards.forEach(buildCloth)
       }
@@ -319,31 +320,7 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
         motion.pointerX = 0
         motion.pointerY = 0
       }
-      // Swipe orizzontale col dito: progetto successivo / precedente.
-      // touch-pan-y lascia lo scroll verticale al browser, quindi qui
-      // arrivano solo i gesti di lato
-      const swipe = { id: null, x: 0, y: 0, at: 0 }
-      const onPointerDown = (e) => {
-        if (e.pointerType === 'mouse') return
-        swipe.id = e.pointerId
-        swipe.x = e.clientX
-        swipe.y = e.clientY
-      }
-      const onPointerUp = (e) => {
-        if (e.pointerId !== swipe.id) return
-        swipe.id = null
-        const dx = e.clientX - swipe.x
-        const dy = e.clientY - swipe.y
-        if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.5) return
-        swipe.at = performance.now()
-        const next = clamp(apiRef.current.active + (dx < 0 ? 1 : -1), 0, count - 1)
-        if (next !== apiRef.current.active) apiRef.current.goTo?.(next)
-      }
-      const onPointerCancel = () => { swipe.id = null }
-
       const onClick = (e) => {
-        // Il tap che chiude uno swipe non apre il progetto
-        if (performance.now() - swipe.at < 400) return
         // Al tocco non c'è un pointermove prima del click: la posizione va presa qui
         setNdc(e)
         const hit = pick()
@@ -364,16 +341,19 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
         const ad = Math.abs(d)
         const light = clamp(1 - ad * 1.15, 0, 1)
         if (mobile) {
-          // Centrata nello spazio libero tra la scheda in alto e i comandi in basso
-          dummy.position.set(d * w * 0.86, d * h * 0.32 - h * 0.04, -ad * w * 0.7)
+          // Colonna verticale: la successiva arriva dal basso e quella attuale
+          // esce in alto, piegandosi all'indietro come su un rullo
+          // (sui telefoni bassi più distanti, così non finiscono sotto la scheda)
+          dummy.position.set(0, -d * h * (layout.vh < 720 ? 1.35 : 1.18), -ad * h * 0.6)
+          dummy.rotation.set(clamp(d * 0.35, -0.6, 0.6), 0, ((2 - d * 2) * Math.PI) / 180)
         } else {
           dummy.position.set(d * w * 0.9 + w * 0.32, d * h * 0.45 - ad * ad * h * 0.06, -ad * w * 0.5)
+          dummy.rotation.set(
+            -Math.min(ad * 0.17, 0.45) - motion.tiltX * light,
+            clamp(-d * 0.38, -0.7, 0.7) + motion.tiltY * light,
+            ((4 + d * 3) * Math.PI) / 180
+          )
         }
-        dummy.rotation.set(
-          -Math.min(ad * 0.17, 0.45) - motion.tiltX * light,
-          clamp(-d * 0.38, -0.7, 0.7) + motion.tiltY * light,
-          ((4 + d * 3) * Math.PI) / 180
-        )
         dummy.updateMatrix()
         card.material.uniforms.uLight.value = light
         card.material.uniforms.uLoaded.value = lerp(card.material.uniforms.uLoaded.value, card.loaded ? 1 : 0, 0.06)
@@ -585,9 +565,6 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
       canvas.addEventListener('pointermove', onPointerMove)
       canvas.addEventListener('pointerleave', onPointerLeave)
       canvas.addEventListener('click', onClick)
-      canvas.addEventListener('pointerdown', onPointerDown)
-      canvas.addEventListener('pointerup', onPointerUp)
-      canvas.addEventListener('pointercancel', onPointerCancel)
 
       apiRef.current.setBg = (hex, dark) => {
         bg.set(hex)
@@ -602,9 +579,6 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
         canvas.removeEventListener('pointermove', onPointerMove)
         canvas.removeEventListener('pointerleave', onPointerLeave)
         canvas.removeEventListener('click', onClick)
-        canvas.removeEventListener('pointerdown', onPointerDown)
-        canvas.removeEventListener('pointerup', onPointerUp)
-        canvas.removeEventListener('pointercancel', onPointerCancel)
         cards.forEach((c) => { c.geometry?.dispose(); c.material.dispose(); c.texture?.dispose() })
         renderer.dispose()
       }
@@ -660,6 +634,9 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
         <div aria-hidden="true" className="slides-light-source absolute inset-0 pointer-events-none" />
         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full touch-pan-y select-none" />
         <div aria-hidden="true" className="slides-grain absolute inset-0 pointer-events-none" />
+        {/* Su mobile le card vicine passano sotto scheda e comandi: lì sfumano nello sfondo */}
+        <div aria-hidden="true" className="md:hidden absolute inset-x-0 top-0 h-[30%] pointer-events-none" style={{ background: `linear-gradient(${bgHex} 65%, transparent)` }} />
+        <div aria-hidden="true" className="md:hidden absolute inset-x-0 bottom-0 h-[32%] pointer-events-none" style={{ background: `linear-gradient(to top, ${bgHex} 55%, transparent)` }} />
 
         {/* Per tastiera e motori di ricerca: le card sono solo pixel della canvas */}
         <ul className="sr-only">
@@ -719,7 +696,7 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
                   ))}
                 </div>
                 <p className={`md:hidden text-xs font-semibold uppercase tracking-widest tabular-nums ${cTextMuted}`}>
-                  <span className={cTextMain}>{pad(active + 1)}</span> / {pad(count)} · Swipe
+                  <span className={cTextMain}>{pad(active + 1)}</span> / {pad(count)}
                 </p>
               </div>
               {/* md:mr-20: su desktop i bottoni stanno alla quota del "+" e gli lasciano spazio */}
