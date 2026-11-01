@@ -257,13 +257,18 @@ export function createSmokeFluid(canvas) {
     return s
   }
   const vert = compile(gl.VERTEX_SHADER, VERT)
-  const programs = {}
-  for (const [name, src] of Object.entries(SHADERS)) {
+  // Prima si avviano tutti i link, poi si controllano: chiedere lo stato subito
+  // dopo ogni link costringeva il driver a compilarli uno alla volta, in attesa
+  const linked = Object.entries(SHADERS).map(([name, src]) => {
     const prog = gl.createProgram()
     gl.attachShader(prog, vert)
     gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, src))
     gl.bindAttribLocation(prog, 0, 'aPos')
     gl.linkProgram(prog)
+    return [name, prog]
+  })
+  const programs = {}
+  for (const [name, prog] of linked) {
     if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return null
     const uniforms = {}
     const n = gl.getProgramParameter(prog, gl.ACTIVE_UNIFORMS)

@@ -91,85 +91,105 @@ export default function HeroFluid() {
     gl.attachShader(prog, compile(gl.VERTEX_SHADER, VERT))
     gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FRAG))
     gl.linkProgram(prog)
-    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return
-    gl.useProgram(prog)
-
-    const buf = gl.createBuffer()
-    gl.bindBuffer(gl.ARRAY_BUFFER, buf)
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW)
-    const aPos = gl.getAttribLocation(prog, 'aPos')
-    gl.enableVertexAttribArray(aPos)
-    gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0)
-    const u = (n) => gl.getUniformLocation(prog, n)
-    const uRes = u('uRes')
-    const uTime = u('uTime')
-    const uCenter = u('uCenter')
-
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    // Centro del titolo dentro la hero (0..1, y dal basso), letto dall'h1
-    const center = [0.5, 0.58]
-    const resize = () => {
-      const r = host.getBoundingClientRect()
-      const w = Math.min(Math.max(Math.round(r.width * SCALE), 2), MAX_W)
-      const h = Math.max(Math.round(w * (r.height / Math.max(r.width, 1))), 2)
-      canvas.width = w
-      canvas.height = h
-      gl.viewport(0, 0, w, h)
-      gl.uniform2f(uRes, w, h)
-      const title = host.querySelector('h1')
-      if (title) {
-        const t = title.getBoundingClientRect()
-        center[0] = (t.left + t.width / 2 - r.left) / r.width
-        center[1] = 1 - (t.top + t.height / 2 - r.top) / r.height
+    // Il driver compila in background (KHR_parallel_shader_compile): si aspetta
+    // il programma pronto un frame alla volta, senza bloccare il thread principale
+    const parallel = gl.getExtension('KHR_parallel_shader_compile')
+    let stop = () => {}
+    let wait = 0
+    const whenLinked = () => {
+      if (parallel && !gl.getProgramParameter(prog, parallel.COMPLETION_STATUS_KHR)) {
+        wait = requestAnimationFrame(whenLinked)
+        return
       }
-      gl.uniform2f(uCenter, center[0], center[1])
+      if (gl.getProgramParameter(prog, gl.LINK_STATUS)) stop = start()
     }
 
-    let raf = 0
-    let last = 0
-    let time = 20000 * Math.random() // ogni visita parte da una forma diversa
-    const draw = (now) => {
-      raf = requestAnimationFrame(draw)
-      const dt = now - last
-      if (dt < FRAME_MS - 2) return
-      last = now
-      time += Math.min(dt, 100)
-      gl.uniform1f(uTime, time / 1000)
-      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
-    }
+    const start = () => {
+      gl.useProgram(prog)
 
-    const ro = new ResizeObserver(() => {
-      resize()
-      if (reduce) {
+      const buf = gl.createBuffer()
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf)
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW)
+      const aPos = gl.getAttribLocation(prog, 'aPos')
+      gl.enableVertexAttribArray(aPos)
+      gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0)
+      const u = (n) => gl.getUniformLocation(prog, n)
+      const uRes = u('uRes')
+      const uTime = u('uTime')
+      const uCenter = u('uCenter')
+
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      // Centro del titolo dentro la hero (0..1, y dal basso), letto dall'h1
+      const center = [0.5, 0.58]
+      const resize = () => {
+        const r = host.getBoundingClientRect()
+        const w = Math.min(Math.max(Math.round(r.width * SCALE), 2), MAX_W)
+        const h = Math.max(Math.round(w * (r.height / Math.max(r.width, 1))), 2)
+        canvas.width = w
+        canvas.height = h
+        gl.viewport(0, 0, w, h)
+        gl.uniform2f(uRes, w, h)
+        const title = host.querySelector('h1')
+        if (title) {
+          const t = title.getBoundingClientRect()
+          center[0] = (t.left + t.width / 2 - r.left) / r.width
+          center[1] = 1 - (t.top + t.height / 2 - r.top) / r.height
+        }
+        gl.uniform2f(uCenter, center[0], center[1])
+      }
+
+      let raf = 0
+      let last = 0
+      let time = 20000 * Math.random() // ogni visita parte da una forma diversa
+      const draw = (now) => {
+        raf = requestAnimationFrame(draw)
+        const dt = now - last
+        if (dt < FRAME_MS - 2) return
+        last = now
+        time += Math.min(dt, 100)
         gl.uniform1f(uTime, time / 1000)
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
       }
-    })
-    ro.observe(host)
-    resize()
 
-    // Anima solo mentre la hero è visibile; fuori schermo si ferma anche la grana
-    const io = new IntersectionObserver(([entry]) => {
-      host.classList.toggle('hero-idle', !entry.isIntersecting)
-      if (reduce) return
-      if (entry.isIntersecting && !raf) {
-        last = 0
-        raf = requestAnimationFrame(draw)
-      } else if (!entry.isIntersecting && raf) {
+      const ro = new ResizeObserver(() => {
+        resize()
+        if (reduce) {
+          gl.uniform1f(uTime, time / 1000)
+          gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
+        }
+      })
+      ro.observe(host)
+      resize()
+
+      // Anima solo mentre la hero è visibile; fuori schermo si ferma anche la grana
+      const io = new IntersectionObserver(([entry]) => {
+        host.classList.toggle('hero-idle', !entry.isIntersecting)
+        if (reduce) return
+        if (entry.isIntersecting && !raf) {
+          last = 0
+          raf = requestAnimationFrame(draw)
+        } else if (!entry.isIntersecting && raf) {
+          cancelAnimationFrame(raf)
+          raf = 0
+        }
+      })
+      io.observe(host)
+
+      return () => {
         cancelAnimationFrame(raf)
-        raf = 0
+        io.disconnect()
+        ro.disconnect()
+        // Niente loseContext(): in sviluppo React rimonta il componente e
+        // getContext() restituirebbe lo stesso contesto, ormai perso (canvas bianca)
+        gl.deleteBuffer(buf)
+        gl.deleteProgram(prog)
       }
-    })
-    io.observe(host)
+    }
 
+    whenLinked()
     return () => {
-      cancelAnimationFrame(raf)
-      io.disconnect()
-      ro.disconnect()
-      // Niente loseContext(): in sviluppo React rimonta il componente e
-      // getContext() restituirebbe lo stesso contesto, ormai perso (canvas bianca)
-      gl.deleteBuffer(buf)
-      gl.deleteProgram(prog)
+      cancelAnimationFrame(wait)
+      stop()
     }
   }, [])
 
