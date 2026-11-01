@@ -144,7 +144,7 @@ export default function ServicesSection({ services, onCta, onContact }) {
           </ul>
 
           {/* Invito: a sinistra, lontano dal "+" in basso a destra; da desktop in fondo alla colonna */}
-          <div className="col-span-12 lg:col-span-4 lg:row-start-2 lg:self-end flex items-center gap-6 mt-12 lg:mt-10">
+          <div className="col-span-12 lg:col-span-4 lg:row-start-2 lg:self-end flex mt-12 lg:mt-10">
             <button
               onClick={onContact}
               className="rounded-full hero-btn punk-shadow group flex items-center gap-3 whitespace-nowrap px-7 py-3.5 md:px-8 md:py-4 border-[3px] border-black bg-transparent text-black font-semibold text-base md:text-lg active:scale-95 transition-colors duration-200"
@@ -152,9 +152,6 @@ export default function ServicesSection({ services, onCta, onContact }) {
               Start a project
               <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </button>
-            <span className="hidden md:block lg:hidden xl:block text-xs font-semibold uppercase tracking-widest tabular-nums whitespace-nowrap">
-              {pad(count)} areas · {new Date().getFullYear()}<span className="punk-blink">_</span>
-            </span>
           </div>
         </div>
       </div>
