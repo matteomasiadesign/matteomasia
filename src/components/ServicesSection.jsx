@@ -10,31 +10,23 @@ import { setScrollLocked } from '../lib/smoothScroll.js'
 
 const pad = (n) => String(n).padStart(2, '0')
 
-// Deliverables per ciascuna area di servizio
+// Deliverables per ciascuna area: solo cose che il cliente riceve (non
+// strumenti né discipline), in inglese come le altre etichette, quattro per area.
+// Il 3D e il motion stanno in fondo alla produzione: ci sono, ma non sono il centro.
+const DELIVERABLES = [
+  { keys: ['brand', 'identity', 'identità'], items: ['Logo & Visual Identity', 'Brand Guidelines', 'Brand Positioning', 'Print & Packaging'] },
+  { keys: ['web', 'digital', 'engineering', 'code', 'sito'], items: ['Websites & Landing Pages', 'UI/UX Design', 'React Front-End', 'SEO & Performance'] },
+  { keys: ['content', 'communication', 'comunicazione', 'social', 'campaign'], items: ['Social Media Content', 'Ad Campaigns', 'Editorial Plans', 'Event Communication'] },
+  { keys: ['photo', 'foto', 'video', 'production', 'art direction', '3d', 'motion'], items: ['Photography', 'Video & Reels', 'Post-Production & Color', '3D & Motion'] },
+]
+
 const getServiceDeliverables = (service, idx) => {
   if (Array.isArray(service?.deliverables) && service.deliverables.length > 0) {
     return service.deliverables
   }
   const title = (service?.title || '').toLowerCase()
-  if (title.includes('brand') || title.includes('identity')) {
-    return ['Brand System', 'Guidelines', 'Packaging', 'Typography']
-  }
-  if (title.includes('web') || title.includes('digital') || title.includes('product') || title.includes('engineering') || title.includes('code')) {
-    return ['UI/UX Design', 'React & Tailwind', 'Design System', 'SEO']
-  }
-  if (title.includes('3d') || title.includes('motion')) {
-    return ['Blender 3D', 'CGI Visuals', 'Product Mockup', 'Animation']
-  }
-  if (title.includes('art') || title.includes('production') || title.includes('video') || title.includes('foto')) {
-    return ['Fotografia', 'Video Editing', 'Multi-Channel Adv', 'Color Grading']
-  }
-  const list = [
-    ['Brand System', 'Guidelines', 'Packaging', 'Typography'],
-    ['UI/UX Design', 'React & Tailwind', 'Design System', 'SEO'],
-    ['Blender 3D', 'CGI Visuals', 'Product Mockup', 'Animation'],
-    ['Fotografia', 'Video Editing', 'Multi-Channel Adv', 'Color Grading'],
-  ]
-  return list[idx % list.length]
+  const match = DELIVERABLES.find(({ keys }) => keys.some((k) => title.includes(k)))
+  return (match || DELIVERABLES[idx % DELIVERABLES.length]).items
 }
 
 export default function ServicesSection({ services, onCta, onContact }) {
@@ -198,7 +190,7 @@ export default function ServicesSection({ services, onCta, onContact }) {
                   <span className="block mt-10 mb-3 text-xs font-semibold uppercase tracking-widest text-[#ff2b1c]">// Deliverables</span>
                   <ul className="flex flex-wrap gap-2">
                     {deliverables.map((item) => (
-                      <li key={item} className="px-3 py-1.5 border-2 border-[#ff2b1c] text-xs font-semibold uppercase tracking-wider">
+                      <li key={item} className="rounded-full px-3.5 py-1.5 border-2 border-[#ff2b1c] text-xs font-semibold uppercase tracking-wider">
                         {item}
                       </li>
                     ))}

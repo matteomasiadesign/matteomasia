@@ -6,8 +6,8 @@ import { supabase } from './supabase'
 export const FALLBACK_SERVICES = [
   {
     id: 's1',
-    title: 'Brand Strategy & Visual Identity',
-    description: 'Sistemi di identità visiva solidi e scalabili. Dal posizionamento strategico alla progettazione dell’intero linguaggio di marca, coordinato tra supporti digitali e fisici.',
+    title: 'Brand Identity & Strategy',
+    description: 'Identità di marca costruite partendo dal posizionamento: logo, sistema visivo e linee guida. Un linguaggio riconoscibile che funziona allo stesso modo sul web, sui social e sulla carta.',
     img: null,
     cta_label: 'Esplora progetti',
     cta_link: '/progetti',
@@ -15,8 +15,8 @@ export const FALLBACK_SERVICES = [
   },
   {
     id: 's2',
-    title: 'Digital Product & Web Engineering',
-    description: 'Progettazione e sviluppo di interfacce web moderne, veloci e orientate alla conversione. Esperienze digitali su misura che uniscono cura estetica, usabilità e rigore tecnico.',
+    title: 'Web Design & Development',
+    description: 'Siti e landing page progettati e sviluppati su misura: veloci, curati nei dettagli e pensati per portare contatti. Dal design dell’interfaccia al codice, senza passaggi di mano.',
     img: null,
     cta_label: 'Esplora progetti',
     cta_link: '/progetti',
@@ -24,8 +24,8 @@ export const FALLBACK_SERVICES = [
   },
   {
     id: 's3',
-    title: '3D Design & Motion Graphics',
-    description: 'Visual e animazioni tridimensionali progettati per catturare l’attenzione e valorizzare prodotti o concetti complessi con un forte impatto scenico ed emotivo.',
+    title: 'Content & Communication',
+    description: 'Contenuti e campagne per i canali digitali di un business, un progetto o un evento. Un piano chiaro e uno stile coerente su ogni piattaforma, dal primo post al lancio.',
     img: null,
     cta_label: 'Esplora progetti',
     cta_link: '/progetti',
@@ -33,8 +33,8 @@ export const FALLBACK_SERVICES = [
   },
   {
     id: 's4',
-    title: 'Art Direction & Visual Production',
-    description: 'Regia visiva e produzione multimediale end-to-end. Dalla fotografia alla post-produzione audio-video, curando la coerenza di ogni singolo touchpoint.',
+    title: 'Photo & Video Production',
+    description: 'Fotografia e video dallo shooting alla post-produzione: riprese, montaggio, reel e color grading. Quando il progetto lo chiede, anche visual 3D e motion graphics.',
     img: null,
     cta_label: 'Esplora progetti',
     cta_link: '/progetti',
