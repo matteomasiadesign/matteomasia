@@ -106,9 +106,10 @@ export default function SmokeTitle({ lines, className = '' }) {
       W = hr.width
       H = hr.height
       dpr = Math.min(window.devicePixelRatio || 1, 1.5)
+      // Spostate con transform, non con left/top: il browser non lo conta come
+      // salto della pagina (CLS)
       for (const c of [textCanvas, canvas]) {
-        c.style.left = `${hr.left - wr.left}px`
-        c.style.top = `${hr.top - wr.top}px`
+        c.style.transform = `translate(${hr.left - wr.left}px, ${hr.top - wr.top}px)`
         c.style.width = `${W}px`
         c.style.height = `${H}px`
       }
@@ -629,8 +630,8 @@ export default function SmokeTitle({ lines, className = '' }) {
           </span>
         ))}
       </h1>
-      <canvas ref={textRef} aria-hidden="true" className="pointer-events-none absolute" />
-      <canvas ref={canvasRef} aria-hidden="true" className="pointer-events-none absolute" />
+      <canvas ref={textRef} aria-hidden="true" className="pointer-events-none absolute left-0 top-0 w-0 h-0" />
+      <canvas ref={canvasRef} aria-hidden="true" className="pointer-events-none absolute left-0 top-0 w-0 h-0" />
     </div>
   )
 }
