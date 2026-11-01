@@ -53,7 +53,7 @@ const SCENES = [
     ms: 10000,
     content: (
       <p className={`${body} max-w-2xl lynch-glow`}>
-        Nel <strong className={mark}>2023</strong> conseguo la laurea in <strong className={mark}>Economia e Management</strong>, tornando al mondo visivo con un approccio più strutturato, strategico e orientato al business: dal 3D modeling al web design e front-end engineering.
+        Nel <strong className={mark}>2023</strong> conseguo la laurea in <strong className={mark}>Economia e Management</strong>, tornando al mondo visivo con un approccio più strutturato, strategico e orientato al business: dall'identità di marca al web design, fino allo sviluppo front-end.
       </p>
     ),
   },
@@ -77,7 +77,7 @@ const SCENES = [
         <span className={label}>Design + Code · Full-Stack</span>
         <h3 className="mt-5 text-4xl md:text-6xl text-[#f3ead7] lynch-glow">End-to-End</h3>
         <p className="mt-5 max-w-lg text-base md:text-xl leading-relaxed text-[#f3ead7]/90 lynch-glow">
-          Dall'identità visiva e 3D fino allo sviluppo front-end moderno: un unico riferimento per l'intero ecosistema digitale.
+          Dall'identità visiva ai contenuti, fino allo sviluppo front-end: un unico riferimento per l'intero ecosistema digitale.
         </p>
       </>
     ),
