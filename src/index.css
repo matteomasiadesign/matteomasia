@@ -117,17 +117,12 @@ h1, h2, h3, .font-display {
 .punk-row:hover .punk-row-title,
 .punk-row:focus-visible .punk-row-title { animation: punk-glitch 0.26s steps(1) 1; }
 
-/* --- CHI SONO: LA STANZA ROSSA --- */
-/* Tende sul fondo (il velluto è un SVG dentro): buio in alto e in basso */
-.lynch-drapes {
-  background: #3a0309;
-  transform-origin: top center;
-  animation: lynch-sway 11s ease-in-out infinite alternate;
-}
-/* Le pieghe respirano appena, come mosse da un'aria che non c'è */
-@keyframes lynch-sway {
-  from { transform: scaleX(1) skewX(0deg); }
-  to { transform: scaleX(1.02) skewX(0.6deg); }
+/* --- CHI SONO: LA STANZA BUIA --- */
+/* Fondo: nero, con un'ombra di cremisi in alto (il ricordo delle tende) */
+.lynch-room {
+  background:
+    radial-gradient(ellipse 70% 45% at 50% 0%, rgba(140, 13, 24, 0.18), rgba(140, 13, 24, 0) 70%),
+    #050404;
 }
 /* Sipario davanti (velluto SVG dentro), più scuro ai bordi */
 .lynch-curtain {
@@ -135,8 +130,7 @@ h1, h2, h3, .font-display {
   box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.7);
   will-change: transform;
 }
-/* Ombra in alto e in basso su tende e sipario, come sotto una luce dall'alto */
-.lynch-drapes::after,
+/* Ombra in alto e in basso sul sipario, come sotto una luce dall'alto */
 .lynch-curtain::after {
   content: '';
   position: absolute;
@@ -144,8 +138,6 @@ h1, h2, h3, .font-display {
   pointer-events: none;
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0) 62%, rgba(0, 0, 0, 0.8));
 }
-/* Pozza di buio dietro le didascalie */
-.lynch-scrim { background: radial-gradient(ellipse 46% 34% at 50% 50%, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.35) 60%, rgba(0, 0, 0, 0) 100%); }
 /* Pavimento a zig-zag bianco e nero, che si perde nel buio verso il fondo */
 .lynch-floor {
   background:
@@ -159,11 +151,21 @@ h1, h2, h3, .font-display {
   mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.35) 12%, #000 40%);
   will-change: transform;
 }
-/* Luce calda dall'alto che tremola come una lampada difettosa */
-.lynch-light {
-  background:
-    radial-gradient(ellipse 38% 50% at 50% 34%, rgba(255, 222, 170, 0.2), rgba(255, 222, 170, 0) 70%),
-    radial-gradient(ellipse 70% 60% at 50% 45%, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.55) 100%);
+/* Il buio: un velo nero enorme con un buco morbido dove sta la luce, e la
+   luce calda che tremola come una lampada difettosa. Li sposta AboutSection,
+   solo con transform: niente ridisegno */
+.lynch-torch {
+  width: 240vmax;
+  height: 240vmax;
+  background: radial-gradient(circle closest-side, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.3) 10%, rgba(0, 0, 0, 0.82) 24%, #000 38%);
+  will-change: transform;
+}
+.lynch-beam {
+  width: 90vmax;
+  height: 90vmax;
+  background: radial-gradient(circle closest-side, rgba(255, 214, 160, 0.16), rgba(255, 214, 160, 0.05) 50%, rgba(255, 214, 160, 0) 100%);
+  mix-blend-mode: screen;
+  will-change: transform;
   animation: lynch-flicker 7s steps(1) infinite;
 }
 @keyframes lynch-flicker {
@@ -206,33 +208,60 @@ h1, h2, h3, .font-display {
 /* Sezione lontana dallo schermo: animazioni infinite in pausa */
 .lynch-idle * { animation-play-state: paused !important; }
 .lynch-vignette { background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, 0.88) 100%); }
-/* Testo leggibile sopra velluto e pavimento: alone scuro morbido */
+/* Margini della stanza: la griglia più il velluto che resta ai lati (7%
+   dello schermo per lato, vedi il sipario aperto in AboutSection) */
+.about-wrap { width: 100%; max-width: 1600px; margin-inline: auto; padding-inline: calc(7vw + var(--gutter)); }
+/* Testo leggibile sopra la luce e il pavimento: alone scuro morbido */
 .lynch-glow { text-shadow: 0 0 28px rgba(0, 0, 0, 0.95), 0 0 6px rgba(0, 0, 0, 0.9); }
-/* Didascalie a tempo: una alla volta. Quella che esce sale e si sfoca;
-   la nuova aspetta che sia sparita, poi emerge dal buio dal basso */
-.lynch-scene {
+/* Entrata a sipario aperto: tutto insieme, a cascata stretta (meno di 1s).
+   Prima resta nascosto, anche al Tab */
+.about-in {
   opacity: 0;
   visibility: hidden;
-  transform: translateY(14px);
-  filter: blur(10px);
-  transition: opacity 0.6s ease, transform 0.6s ease, filter 0.6s ease, visibility 0s linear 0.6s;
+  transform: translateY(18px);
+  filter: blur(8px);
+  transition: opacity 0.3s ease, transform 0.3s ease, filter 0.3s ease, visibility 0s linear 0.3s;
 }
-.lynch-scene.is-past { transform: translateY(-14px); }
-.lynch-scene.is-active {
+.is-open .about-in {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0);
-  filter: blur(0);
-  transition: opacity 0.9s ease 0.5s, transform 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.5s, filter 0.9s ease 0.5s, visibility 0s linear 0.5s;
+  transform: none;
+  filter: none;
+  transition: opacity 0.6s ease, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1), filter 0.6s ease, visibility 0s;
+  transition-delay: calc(var(--i, 0) * 60ms);
 }
 /* Il titolo: specchiato all'inizio, si raddrizza girando su se stesso */
-.lynch-scene [data-flip] { transform: scaleX(-1); transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1); }
-.lynch-scene.is-active [data-flip] { transform: scaleX(1); transition-delay: 0.7s; }
-/* Segmento della pellicola: lo riempie il timer della scena */
-.lynch-progress { transform: scaleX(0); transform-origin: left; }
+.about-flip { transform: scaleX(-1); transition: transform 0.4s ease; }
+.is-open .about-flip { transform: none; transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.15s; }
+/* Testo del capitolo (desktop): cambia subito, con una dissolvenza breve */
+.about-text {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px);
+  filter: blur(6px);
+  transition: opacity 0.2s ease, transform 0.2s ease, filter 0.2s ease, visibility 0s linear 0.2s;
+}
+.about-text.is-active {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  filter: none;
+  transition: opacity 0.35s ease 0.08s, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.08s, filter 0.35s ease 0.08s, visibility 0s;
+}
+/* Capitoli: spenti finché non li scegli; quello scelto ha la linea rossa */
+.about-ch-title { color: rgba(243, 234, 215, 0.38); transition: color 0.25s ease; }
+.about-ch-num { color: rgba(243, 234, 215, 0.4); transition: color 0.25s ease; }
+.about-ch:hover .about-ch-title { color: rgba(243, 234, 215, 0.7); }
+.about-ch.is-active .about-ch-title { color: #f3ead7; }
+.about-ch.is-active .about-ch-num { color: #ff2b1c; }
+.about-ch-line { transform: scaleX(0); transform-origin: left; transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1); }
+.about-ch.is-active .about-ch-line { transform: scaleX(1); }
+/* Su mobile il testo si apre sotto il capitolo scelto */
+.about-acc { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.4s cubic-bezier(0.22, 1, 0.36, 1); }
+.about-ch.is-active .about-acc { grid-template-rows: 1fr; }
 @media (prefers-reduced-motion: reduce) {
-  .lynch-scene, .lynch-scene.is-past, .lynch-scene.is-active { transform: none; filter: none; }
-  .lynch-scene [data-flip] { transform: none; }
+  .about-in, .is-open .about-in, .about-text, .about-text.is-active { transform: none; filter: none; }
+  .about-flip, .is-open .about-flip { transform: none; }
 }
 
 /* Pannello laterale */
