@@ -141,7 +141,7 @@ export default function ServicesSection({ services, onCta, onContact }) {
           <div className="flex justify-center mt-14 md:mt-20">
             <button
               onClick={onContact}
-              className="hero-btn punk-shadow group flex items-center gap-3 px-8 py-4 border-[3px] border-black bg-transparent text-black font-semibold text-base md:text-lg active:scale-95 transition-colors duration-200"
+              className="rounded-full hero-btn punk-shadow group flex items-center gap-3 px-8 py-4 border-[3px] border-black bg-transparent text-black font-semibold text-base md:text-lg active:scale-95 transition-colors duration-200"
             >
               Start a project
               <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
@@ -178,7 +178,7 @@ export default function ServicesSection({ services, onCta, onContact }) {
                     ref={closeRef}
                     onClick={close}
                     aria-label="Chiudi"
-                    className="hero-btn-red w-11 h-11 border-[3px] border-[#ff2b1c] text-[#ff2b1c] flex items-center justify-center transition-colors duration-200"
+                    className="rounded-full hero-btn-red w-11 h-11 border-[3px] border-[#ff2b1c] text-[#ff2b1c] flex items-center justify-center transition-colors duration-200"
                   >
                     <X size={18} />
                   </button>
@@ -214,7 +214,7 @@ export default function ServicesSection({ services, onCta, onContact }) {
                     {service.cta_link && (
                       <button
                         onClick={() => { close(); onCta(service.cta_link) }}
-                        className="punk-btn-fill group flex items-center gap-2 px-6 py-3 border-[3px] border-[#ff2b1c] bg-[#ff2b1c] text-black font-semibold text-sm md:text-base active:scale-95 transition-colors duration-200"
+                        className="rounded-full punk-btn-fill group flex items-center gap-2 px-6 py-3 border-[3px] border-[#ff2b1c] bg-[#ff2b1c] text-black font-semibold text-sm md:text-base active:scale-95 transition-colors duration-200"
                       >
                         {service.cta_label || 'Explore work'}
                         <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
@@ -222,7 +222,7 @@ export default function ServicesSection({ services, onCta, onContact }) {
                     )}
                     <button
                       onClick={() => { close(); onContact() }}
-                      className="hero-btn-red px-6 py-3 border-[3px] border-[#ff2b1c] text-[#ff2b1c] font-semibold text-sm md:text-base active:scale-95 transition-colors duration-200"
+                      className="rounded-full hero-btn-red px-6 py-3 border-[3px] border-[#ff2b1c] text-[#ff2b1c] font-semibold text-sm md:text-base active:scale-95 transition-colors duration-200"
                     >
                       Let's talk
                     </button>

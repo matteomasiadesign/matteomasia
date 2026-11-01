@@ -273,8 +273,8 @@ export default function Navbar({ menuItems, onSection }) {
         className={`nav-spring hidden md:block fixed top-0 inset-x-0 z-50 text-black ${past ? '-translate-y-full opacity-0 pointer-events-none' : ''}`}
         {...(past && { inert: '' })}
       >
-        <div className="wrap grid-12 items-center h-[76px] text-sm font-medium">
-          <nav aria-label="Principale" className="col-span-8 flex gap-8">
+        <div className="wrap flex justify-center items-center h-[76px] text-sm font-medium">
+          <nav aria-label="Principale" className="flex gap-8">
             {menuItems.map((item) => (
               <a key={item.id} href={`#${item.id}`} onClick={(e) => anchorTop(e, item.id)} className="hover:opacity-60 transition-opacity">
                 {item.name}
@@ -282,9 +282,6 @@ export default function Navbar({ menuItems, onSection }) {
             ))}
             <Link to="/progetti" className="hover:opacity-60 transition-opacity">Archive</Link>
           </nav>
-          <p className="col-span-4 justify-self-end flex items-center gap-2 text-xs font-semibold uppercase tracking-widest">
-            <span className="w-2 h-2 rounded-full bg-black punk-blink" aria-hidden="true" /> Available for projects
-          </p>
         </div>
       </header>
 
@@ -303,7 +300,7 @@ export default function Navbar({ menuItems, onSection }) {
         aria-modal="true"
         aria-label="Menu"
         data-lenis-prevent
-        className={`fixed z-[66] left-1/2 rounded-[32px] bg-black text-[#ff2b1c] shadow-[0_24px_80px_rgba(0,0,0,0.55),inset_0_0_0_1px_rgba(255,43,28,0.28)] ${phase === 'open' ? 'menu-open' : ''} ${islandShown ? '' : 'invisible'}`}
+        className={`hide-scrollbar fixed z-[66] left-1/2 rounded-[32px] bg-black text-[#ff2b1c] shadow-[0_24px_80px_rgba(0,0,0,0.55),inset_0_0_0_1px_rgba(255,43,28,0.28)] ${phase === 'open' ? 'menu-open' : ''} ${islandShown ? '' : 'invisible'}`}
         style={{
           top: 'calc(12px + env(safe-area-inset-top, 0px))',
           width: 'min(560px, calc(100vw - 24px))',

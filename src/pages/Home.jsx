@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowUpRight, Copy, Check, MessageCircle, Clapperboard } from 'lucide-react'
+import { ArrowRight, ArrowUpRight, Copy, Check, MessageCircle, Clapperboard } from 'lucide-react'
 import {
   TbBrandAdobePhotoshop,
   TbBrandAdobeIllustrator,
@@ -137,7 +137,8 @@ const ToolsTicker = ({ cTextMuted }) => {
 // solo questo testo, non tutta la home
 const LocalTime = () => <time className="tabular-nums">{useLocalTime()}</time>
 
-const HERO_LINES = ['Matteo Masia.']
+// Senza punto: in Doto il punto è una crocetta che sposta il nome fuori asse
+const HERO_LINES = ['Matteo Masia']
 const EMAIL = 'matteomasiadesign@gmail.com'
 const PHONE = '+393495862375'
 
@@ -274,36 +275,36 @@ export default function Home() {
 
       <main id="home" className={`w-full min-h-screen ${cBgMain} ${cTextMain}`}>
         {/* --- HERO SECTION --- */}
-        <section aria-label="Intro" className="hero-red min-h-screen flex flex-col justify-center items-center px-4 md:px-10 relative overflow-hidden text-black">
+        {/* pb-[12vh]: il blocco sta un po' sopra la metà, al centro ottico e fuori dalla sfumatura */}
+        <section aria-label="Intro" className="hero-red min-h-screen flex flex-col justify-center items-center pb-[12vh] relative overflow-hidden text-black">
           {/* Rosso e nero che si muovono lenti come un fluido */}
           <HeroFluid />
           {/* Sfumatura dal rosso allo sfondo della pagina, verso i progetti */}
-          <div aria-hidden="true" className="hero-fade pointer-events-none absolute inset-x-0 bottom-0 h-[55vh]" />
+          <div aria-hidden="true" className="hero-fade pointer-events-none absolute inset-x-0 bottom-0 h-[38vh]" />
           {/* Grana di pellicola, la stessa della stanza rossa */}
           <div aria-hidden="true" className="lynch-grain hero-grain absolute pointer-events-none" />
           {/* Parte ancora rossa della hero (il fondo sfumato conta già come scuro per la navigazione) */}
           <div aria-hidden="true" data-nav-surface="red" className="pointer-events-none absolute inset-x-0 top-0 bottom-[25vh]" />
-          <div className="max-w-[980px] mx-auto w-full flex flex-col items-center text-center z-10 relative mt-10 md:mt-0">
-            <SmokeTitle lines={HERO_LINES} className="text-[7.5vw] md:text-[3.5rem] lg:text-[4.5rem] font-bold leading-none whitespace-nowrap mb-3" />
-
-            <FadeIn delay={750}>
-              <div className="max-w-2xl mx-auto mb-8 md:mb-9 flex flex-col items-center">
-                <p className="text-lg md:text-2xl font-bold leading-tight mb-1">
-                  Digital Designer
-                </p>
-                <p className="text-sm md:text-lg max-w-lg mx-auto leading-snug [text-wrap:balance]">
-                  Esperienze digitali e Comunicazione
-                </p>
-              </div>
+          <div className="wrap flex flex-col items-center text-center z-10 relative">
+            {/* Il ruolo come etichetta sopra il nome: il nome resta l'unica cosa grande */}
+            <FadeIn delay={500}>
+              <p className="text-xs md:text-sm font-semibold uppercase tracking-widest mb-4 md:mb-6">
+                Digital Designer
+              </p>
             </FadeIn>
 
+            {/* Il nome cresce con lo schermo restando su una riga: Doto rende meglio grande */}
+            <SmokeTitle lines={HERO_LINES} className="text-[clamp(2.25rem,10.5vw,8rem)] font-bold leading-none whitespace-nowrap mb-8 md:mb-12" />
+
+            {/* Un'azione principale piena e una secondaria a cornice, larghe uguali */}
             <FadeIn delay={1050}>
-              <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto px-4 md:px-0">
-                <a {...anchor('contact')} className="hero-btn w-full md:w-auto px-8 py-4 border-[3px] border-black bg-transparent text-black font-semibold text-base md:text-lg active:scale-95 transition-all duration-200">
-                  Lavora con me
+              <div className="grid grid-cols-2 gap-3 w-full max-w-sm md:flex md:w-auto md:max-w-none md:gap-4">
+                <a {...anchor('contact')} className="rounded-full hero-btn-red group inline-flex items-center justify-center gap-2 whitespace-nowrap px-4 md:px-7 py-3 md:min-w-[13rem] border-[3px] border-black bg-black text-[#ff2b1c] font-semibold text-sm md:text-base active:scale-95 transition-all duration-200">
+                  Work with me
+                  <ArrowRight size={18} className="hidden md:block group-hover:translate-x-1 transition-transform" />
                 </a>
-                <a {...anchor('projects')} className="hero-btn w-full md:w-auto px-8 py-4 border-[3px] border-black bg-transparent text-black font-semibold text-base md:text-lg active:scale-95 transition-all duration-200">
-                  Archivio
+                <a {...anchor('projects')} className="rounded-full hero-btn inline-flex items-center justify-center whitespace-nowrap px-4 md:px-7 py-3 md:min-w-[13rem] border-[3px] border-black bg-transparent text-black font-semibold text-sm md:text-base active:scale-95 transition-all duration-200">
+                  Archive
                 </a>
               </div>
             </FadeIn>
@@ -359,7 +360,7 @@ export default function Home() {
                         <button onClick={() => handleCopy(PHONE, 'phone')} aria-label="Copia il numero di telefono" className="w-11 h-11 flex items-center justify-center hover:bg-black hover:text-[#ff2b1c] transition-colors">
                           {copiedData === 'phone' ? <CopiedBadge /> : <Copy size={18} />}
                         </button>
-                        <a href="https://wa.me/393495862375" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-3 bg-black text-[#ff2b1c] text-sm font-semibold uppercase tracking-widest border-[3px] border-black hover:bg-transparent hover:text-black transition-colors">
+                        <a href="https://wa.me/393495862375" target="_blank" rel="noopener noreferrer" className="rounded-full inline-flex items-center gap-2 px-4 py-3 bg-black text-[#ff2b1c] text-sm font-semibold uppercase tracking-widest border-[3px] border-black hover:bg-transparent hover:text-black transition-colors">
                           <MessageCircle size={16} /> WhatsApp
                         </a>
                       </dd>
@@ -426,7 +427,7 @@ export default function Home() {
                       <button
                         type="submit"
                         disabled={submitting}
-                        className="self-start inline-flex items-center gap-3 px-10 py-4 bg-black text-[#ff2b1c] border-[3px] border-black font-semibold uppercase tracking-widest hover:bg-transparent hover:text-black active:scale-95 transition-colors duration-200 disabled:opacity-60"
+                        className="rounded-full self-start inline-flex items-center gap-3 px-10 py-4 bg-black text-[#ff2b1c] border-[3px] border-black font-semibold uppercase tracking-widest hover:bg-transparent hover:text-black active:scale-95 transition-colors duration-200 disabled:opacity-60"
                       >
                         {submitting ? (
                           <><span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true" /> Sending…</>

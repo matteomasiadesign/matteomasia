@@ -2,33 +2,44 @@ import React, { useEffect, useRef } from 'react'
 import { createSmokeFluid, FLUID } from '../lib/smokeFluid.js'
 
 // --- TITOLO CHE SI SBRICIOLA IN FUMO ---
-// Le lettere non si muovono e non sbiadiscono: avvicinando il cursore si
-// sbriciolano. Il font (Doto) è fatto di quadratini su una griglia: dai glifi
-// se ne staccano alcuni, che volano verso il cursore e diventano fumo strada
-// facendo; più ci si avvicina, più la lettera si consuma. Entrando nel titolo
-// tutto esplode in una nube e poi le lettere si ricompongono un quadratino
-// alla volta. Allontanando il cursore i quadratini tornano al loro posto.
+// Il font (Doto) è fatto di puntini su una griglia, e l'effetto lavora sui
+// puntini come un retino di stampa: avvicinando il cursore si restringono, di
+// più quanto più sono vicini, e quelli quasi spariti si staccano, volano verso
+// il cursore e diventano fumo strada facendo. Allontanando il cursore tornano
+// a gonfiarsi. Entrando nel titolo tutto esplode in una nube e poi le lettere
+// si ricompongono con un'onda di puntini da sinistra a destra.
 // Su touch basta un tocco per l'esplosione.
 //
 // Come funziona: finché l'effetto è fermo si vede il testo vero. Appena serve,
 // il titolo viene ridisegnato identico su una canvas (stessa font, stesse
-// posizioni) e il testo vero diventa trasparente: sulla canvas si possono
-// spegnere i singoli quadratini. Ogni quadratino staccato è una particella e
-// disegna una maschera da cui la simulazione di fluido (src/lib/smokeFluid.js)
-// fa uscire il fumo. Quando tutto è tornato a posto si torna al testo vero.
+// posizioni) e il testo vero diventa trasparente. Ogni puntino cambiato viene
+// cancellato dal testo e ridisegnato in scala, ritagliandolo da una copia del
+// titolo: così ha sempre la forma vera del puntino di Doto, anche in volo.
+// Ogni puntino staccato è una particella e disegna una maschera da cui la
+// simulazione di fluido (src/lib/smokeFluid.js) fa uscire il fumo. Quando
+// tutto è tornato a posto si torna al testo vero.
 
 const HOLD_MS = 900 // quanto resta la nube prima che il titolo si ricomponga
-const REFORM_MS = 1800
-const LINGER_MS = 7000 // dopo l'ultimo quadratino, il tempo perché il fumo svanisca
-const RATE = 11 // fumo rilasciato al secondo da un quadratino in volo
+const REFORM_MS = 1500
+const LINGER_MS = 7000 // dopo l'ultimo puntino, il tempo perché il fumo svanisca
+const RATE = 11 // fumo rilasciato al secondo da un puntino in volo
 const MASK_SCALE = 0.5 // risoluzione della maschera rispetto al fumo
-const MAX_ERODE = 0.6 // quanta parte di una lettera si sbriciola prima di entrarci
-const CRUMBLE_PER_MS = 0.03 // quadratini al ms per lettera, al massimo
+const SHRINK_MS = 140 // quanto in fretta un puntino si restringe verso il cursore
+const RELAX_MS = 380 // e quanto in fretta torna grande quando il cursore si allontana
+const MAX_SHRINK = 0.85 // quanto si restringe al massimo un puntino col cursore addosso
+// Ogni puntino si stacca sotto una sua scala, scelta a caso in questo
+// intervallo: già a media distanza se ne staccano alcuni qua e là
+const DETACH_MIN = 0.15
+const DETACH_MAX = 0.7
+const REGROW_GAP = 0.2 // un puntino staccato ricresce quando potrebbe stare così sopra la sua soglia
+const CRUMBLE_PER_MS = 0.25 // puntini staccati al ms, al massimo
 const MAX_PARTICLES = 900
 
 const rand = (a, b) => a + Math.random() * (b - a)
 const clamp01 = (v) => Math.min(Math.max(v, 0), 1)
 const smooth = (a, b, x) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t) }
+// Arriva con un piccolo rimbalzo oltre la misura piena
+const easeOutBack = (t) => { const c = 1.2; const u = t - 1; return 1 + (c + 1) * u * u * u + c * u * u }
 
 export default function SmokeTitle({ lines, className = '' }) {
   const wrapRef = useRef(null)
@@ -49,14 +60,20 @@ export default function SmokeTitle({ lines, className = '' }) {
     const tctx = textCanvas.getContext('2d')
     const mask = document.createElement('canvas')
     const mctx = mask.getContext('2d')
+    // Copia del titolo da cui si ritagliano i puntini
+    const source = document.createElement('canvas')
+    const sctx = source.getContext('2d')
     const letterEls = [...title.querySelectorAll('[data-smoke]')]
     // Prima che le parole abbiano finito di entrare l'effetto resta spento
     const words = title.querySelectorAll('.hero-reveal-word').length
     const readyAt = performance.now() + words * 280 + 1500
 
-    // Lettera: { text, x, y, w, h, base, dots, eroded }
-    // Quadratino: { x, y, s, on, a, healAt, kind } (a = quanto è visibile, 0..1)
+    // Lettera: { text, x, y, w, h, base }
+    // Puntino: { x, y, s, sx, sy, k, g, sc, on, healAt, kind, bias }
+    //   k = scala dovuta al cursore, g = quanto è ricresciuto dopo il distacco,
+    //   sc = scala disegnata, sx/sy = dove si trova nella copia del titolo
     let letters = []
+    let dots = []
     let particles = []
     let W = 1
     let H = 1
@@ -65,6 +82,7 @@ export default function SmokeTitle({ lines, className = '' }) {
     let fontSize = 100
     let font = ''
     let color = '#000'
+    let dotC = 4 // dal bordo della cella al centro del puntino
     let measured = false
     let showing = false // true: si vede la canvas, il testo vero è trasparente
     let raf = 0
@@ -76,10 +94,12 @@ export default function SmokeTitle({ lines, className = '' }) {
     let burstNow = false
     let blocked = false // dopo un'esplosione serve uscire dal titolo per la prossima
     let maskEmpty = true
+    let shrunk = false // qualche puntino è ristretto ma ancora al suo posto
+    let crumble = 0
     // Cursore in px CSS rispetto alla hero
     const pointer = { x: -1e4, y: -1e4, vx: 0, vy: 0, t: 0, inside: false, inHero: false, moved: false }
 
-    // Dimensioni della hero, posizione delle lettere e quadratini di ogni glifo
+    // Dimensioni della hero, posizione delle lettere e puntini di ogni glifo
     const measure = () => {
       const hr = hero.getBoundingClientRect()
       const wr = wrap.getBoundingClientRect()
@@ -122,9 +142,8 @@ export default function SmokeTitle({ lines, className = '' }) {
       // Doto è monospazio su una griglia di 6 colonne per carattere
       const pitch = metrics.width / 6
       const rects = letterEls.map((el) => el.getBoundingClientRect())
-      rects.forEach((r, i) => {
-        g.fillText(letterEls[i].textContent, r.left - wr.left, r.top - wr.top + (r.height - (asc + desc)) / 2 + asc)
-      })
+      const baseOf = (r) => r.top - wr.top + (r.height - (asc + desc)) / 2 + asc
+      rects.forEach((r, i) => g.fillText(letterEls[i].textContent, r.left - wr.left, baseOf(r)))
       const data = g.getImageData(0, 0, gw, gh).data
       const alpha = (x, y) => {
         const xi = Math.round(x)
@@ -134,6 +153,17 @@ export default function SmokeTitle({ lines, className = '' }) {
       const ox = wr.left - hr.left
       const oy = wr.top - hr.top
 
+      // La stessa copia a piena risoluzione, per ritagliare i puntini
+      source.width = Math.ceil(gw * dpr)
+      source.height = Math.ceil(gh * dpr)
+      sctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      sctx.font = font
+      sctx.textBaseline = 'alphabetic'
+      sctx.fillStyle = color
+      rects.forEach((r, i) => sctx.fillText(letterEls[i].textContent, r.left - wr.left, baseOf(r)))
+
+      dots = []
+      let dotW = 0
       letters = rects.map((r, i) => {
         const x0 = Math.floor(r.left - wr.left)
         const y0 = Math.floor(r.top - wr.top)
@@ -151,26 +181,32 @@ export default function SmokeTitle({ lines, className = '' }) {
             }
           }
         }
-        const dots = []
         if (Number.isFinite(left)) {
           for (let cy = top; cy < y1; cy += pitch) {
             for (let cx = left; cx < x1; cx += pitch) {
-              if (alpha(cx + pitch / 2, cy + pitch / 2) > 120) {
-                dots.push({ x: cx + ox, y: cy + oy, s: pitch, on: true, a: 1, healAt: Infinity, kind: '' })
+              if (alpha(cx + pitch / 2, cy + pitch / 2) <= 120) continue
+              // Il puntino sta nell'angolo in alto a sinistra della cella:
+              // la sua larghezza dice attorno a quale centro restringerlo
+              if (!dotW) {
+                const yi = Math.round(cy + pitch * 0.4)
+                for (let xi = Math.round(cx); xi < Math.round(cx + pitch); xi++) if (alpha(xi, yi) > 127) dotW++
               }
+              dots.push({
+                x: cx + ox, y: cy + oy, s: pitch,
+                sx: cx * dpr, sy: cy * dpr,
+                k: 1, g: 1, sc: 1, on: true, healAt: Infinity, kind: '',
+                bias: rand(0.7, 1.2), cut: rand(DETACH_MIN, DETACH_MAX),
+              })
             }
           }
         }
-        const x = r.left - hr.left
-        const y = r.top - hr.top
         return {
           text: letterEls[i].textContent,
-          x, y, w: r.width, h: r.height,
-          base: y + (r.height - (asc + desc)) / 2 + asc,
-          dots,
-          eroded: [], // quadratini staccati dal cursore, dal più vecchio
+          x: r.left - hr.left, y: r.top - hr.top, w: r.width, h: r.height,
+          base: baseOf(r) + oy,
         }
       })
+      dotC = Math.min(Math.max(dotW, pitch * 0.5), pitch) / 2
       particles = []
       maskEmpty = false
       measured = true
@@ -178,13 +214,16 @@ export default function SmokeTitle({ lines, className = '' }) {
 
     const addParticle = (p) => { if (particles.length < MAX_PARTICLES) particles.push(p) }
 
-    // Un quadratino si stacca e diventa particella; con toCursor vola verso
-    // il cursore, altrimenti sale con l'aria calda
+    // Un puntino si stacca e diventa particella, grande quanto era in quel
+    // momento; con toCursor vola verso il cursore, altrimenti sale con l'aria calda
     const detach = (d, toCursor, burstFrom) => {
+      const k0 = Math.max(d.sc, 0.15)
       d.on = false
-      d.a = 0
-      const x = d.x + d.s / 2
-      const y = d.y + d.s / 2
+      d.g = 0
+      d.sc = 0
+      d.healAt = Infinity
+      const x = d.x + dotC
+      const y = d.y + dotC
       let vx
       let vy
       if (burstFrom) {
@@ -208,25 +247,12 @@ export default function SmokeTitle({ lines, className = '' }) {
       addParticle({
         x, y, vx, vy,
         age: 0, life: burstFrom ? rand(700, 1500) : rand(900, 1700),
-        s: d.s, seed: Math.random() * 100,
+        s: d.s, sx: d.sx, sy: d.sy, k0, seed: Math.random() * 100,
         attract: !!toCursor,
       })
     }
 
-    // Il quadratino acceso più vicino al cursore, con un po' di caso
-    const pickDot = (L) => {
-      let best = null
-      let bestScore = Infinity
-      for (let k = 0; k < 7; k++) {
-        const d = L.dots[(Math.random() * L.dots.length) | 0]
-        if (!d || !d.on || d.healAt !== Infinity) continue
-        const score = Math.hypot(d.x - pointer.x, d.y - pointer.y) * rand(0.6, 1.4)
-        if (score < bestScore) { bestScore = score; best = d }
-      }
-      return best
-    }
-
-    // Esplosione: tutti i quadratini volano via in una nube di fumo, spinti in
+    // Esplosione: tutti i puntini volano via in una nube di fumo, spinti in
     // fuori dal centro del titolo
     const burst = () => {
       mode = 'burst'
@@ -235,13 +261,12 @@ export default function SmokeTitle({ lines, className = '' }) {
       blocked = true
       const cx = letters.reduce((s, L) => s + L.x + L.w / 2, 0) / letters.length
       const cy = letters.reduce((s, L) => s + L.y + L.h / 2, 0) / letters.length
+      for (const d of dots) {
+        if (d.on || d.sc > 0) detach(d, false, { x: cx, y: cy })
+        d.healAt = Infinity
+      }
+      if (!fluid) return
       for (const L of letters) {
-        L.eroded = []
-        for (const d of L.dots) {
-          d.healAt = Infinity
-          if (d.on || d.a > 0) detach(d, false, { x: cx, y: cy })
-        }
-        if (!fluid) continue
         const lx = L.x + L.w / 2
         const ly = L.y + L.h / 2
         const dx = lx - cx
@@ -258,16 +283,18 @@ export default function SmokeTitle({ lines, className = '' }) {
       }
     }
 
-    // Ricomposizione: i quadratini riappaiono uno alla volta, in ordine sparso
+    // Ricomposizione: un'onda di puntini che si gonfiano da sinistra a destra
     const reform = (now) => {
       mode = 'reform'
       modeStart = now
-      letters.forEach((L, i) => {
-        for (const d of L.dots) {
-          d.kind = 'reform'
-          d.healAt = now + i * 60 + rand(0, REFORM_MS * 0.75)
-        }
-      })
+      let x0 = Infinity
+      let x1 = -Infinity
+      for (const d of dots) { x0 = Math.min(x0, d.x); x1 = Math.max(x1, d.x) }
+      const span = Math.max(x1 - x0, 1)
+      for (const d of dots) {
+        d.kind = 'reform'
+        d.healAt = now + ((d.x - x0) / span) * REFORM_MS * 0.6 + rand(0, REFORM_MS * 0.25)
+      }
     }
 
     // Spinta nel fluido in px/ms del cursore, convertita in celle al secondo
@@ -279,48 +306,49 @@ export default function SmokeTitle({ lines, className = '' }) {
     // Da quanto lontano il cursore comincia a sbriciolare le lettere
     const reach = () => Math.max(fontSize * 3.2, 200)
 
-    // Distanza del cursore dal riquadro di una lettera
-    const distTo = (L) => {
-      const dx = Math.max(L.x - pointer.x, 0, pointer.x - (L.x + L.w))
-      const dy = Math.max(L.y - pointer.y, 0, pointer.y - (L.y + L.h))
-      return Math.hypot(dx, dy)
-    }
-
-    const updateLetters = (now, dt) => {
+    const updateDots = (now, dt) => {
       const R = reach()
-      for (const L of letters) {
-        if (mode === 'idle' && L.dots.length) {
-          // Quanto deve essere consumata la lettera: niente lontano, fino a
-          // MAX_ERODE quando il cursore la sfiora
-          const target = pointer.inside ? MAX_ERODE * Math.pow(1 - smooth(0, R, distTo(L)), 1.1) : 0
-          const want = Math.round(target * L.dots.length)
-          L.acc = Math.min((L.acc || 0) + dt * CRUMBLE_PER_MS, 4)
-          while (L.acc >= 1 && L.eroded.length < want) {
-            const d = pickDot(L)
-            if (!d) break
-            L.acc -= 1
-            d.kind = 'erode'
+      const eroding = mode === 'idle' && pointer.inside
+      crumble = Math.min(crumble + dt * CRUMBLE_PER_MS, 6)
+      shrunk = false
+      // Si parte da un punto a caso, così il limite di distacchi per frame
+      // non favorisce sempre le prime lettere
+      const n = dots.length
+      const first = (Math.random() * n) | 0
+      for (let j = 0; j < n; j++) {
+        const d = dots[(first + j) % n]
+        // Retino: vicino al cursore il puntino si restringe fino a sparire,
+        // con un po' di caso perché il bordo non sia un cerchio perfetto
+        let target = 1
+        if (eroding) {
+          const dist = Math.hypot(d.x + dotC - pointer.x, d.y + dotC - pointer.y)
+          target = clamp01(1 - (1 - smooth(0, R, dist)) * MAX_SHRINK * d.bias)
+        }
+        d.k += (target - d.k) * (1 - Math.exp(-dt / (target < d.k ? SHRINK_MS : RELAX_MS)))
+        if (target === 1 && d.k > 0.995) d.k = 1
+
+        if (d.on) {
+          if (eroding && d.k < d.cut && crumble >= 1) {
+            crumble -= 1
             detach(d, pointer.inHero)
-            L.eroded.push(d)
           }
-          // Il cursore si allontana: i quadratini staccati per primi tornano
-          while (L.acc >= 1 && L.eroded.length > want) {
-            L.acc -= 1
-            L.eroded.shift().healAt = now + rand(0, 250)
+        } else if (d.healAt === Infinity) {
+          // Staccato: ricresce quando il cursore gli lascia spazio
+          if (mode === 'idle' && target > Math.min(d.cut + REGROW_GAP, 0.95)) {
+            d.kind = 'erode'
+            d.healAt = now + rand(0, 250)
           }
-        }
-        // I quadratini che devono tornare riappaiono sfumando
-        for (const d of L.dots) {
-          if (!d.on && now > d.healAt) {
-            d.a += dt / (d.kind === 'reform' ? 320 : 450)
-            if (d.a >= 1) {
-              d.a = 1
-              d.on = true
-              d.healAt = Infinity
-              d.kind = ''
-            }
+        } else if (now > d.healAt) {
+          d.g += dt / (d.kind === 'reform' ? 420 : 520)
+          if (d.g >= 1) {
+            d.g = 1
+            d.on = true
+            d.healAt = Infinity
+            d.kind = ''
           }
         }
+        d.sc = d.on ? d.k : now > d.healAt ? d.k * easeOutBack(d.g) : 0
+        if (d.on && d.k < 0.9) shrunk = true
       }
     }
 
@@ -355,7 +383,13 @@ export default function SmokeTitle({ lines, className = '' }) {
       particles.length = alive
     }
 
-    // Lettere (meno i quadratini spenti) e quadratini in volo
+    // Un puntino ritagliato dalla copia del titolo, in scala attorno al suo centro
+    const drawDot = (cx, cy, sx, sy, s, k) => {
+      const z = s * k
+      tctx.drawImage(source, sx, sy, s * dpr, s * dpr, cx - dotC * k, cy - dotC * k, z, z)
+    }
+
+    // Lettere (con i puntini cambiati ridisegnati in scala) e puntini in volo
     const drawText = () => {
       tctx.setTransform(1, 0, 0, 1, 0, 0)
       tctx.clearRect(0, 0, textCanvas.width, textCanvas.height)
@@ -365,29 +399,30 @@ export default function SmokeTitle({ lines, className = '' }) {
       tctx.fillStyle = color
       tctx.globalAlpha = 1
       for (const L of letters) tctx.fillText(L.text, L.x, L.base)
+      // Prima si cancellano tutte le celle cambiate, poi si ridisegnano: un
+      // puntino che rimbalza oltre la misura piena sborda nella cella accanto
       tctx.globalCompositeOperation = 'destination-out'
-      for (const L of letters) {
-        for (const d of L.dots) {
-          if (d.a >= 1) continue
-          tctx.globalAlpha = 1 - d.a
-          tctx.fillRect(d.x - 0.3, d.y - 0.3, d.s + 0.6, d.s + 0.6)
-        }
+      for (const d of dots) {
+        if (d.sc !== 1) tctx.fillRect(d.x - 0.3, d.y - 0.3, d.s + 0.6, d.s + 0.6)
       }
       tctx.globalCompositeOperation = 'source-over'
-      // Il quadratino si consuma diventando fumo: rimpicciolisce e svanisce
+      for (const d of dots) {
+        if (d.sc !== 1 && d.sc > 0.02) drawDot(d.x + dotC, d.y + dotC, d.sx, d.sy, d.s, d.sc)
+      }
+      // Il puntino si consuma diventando fumo: rimpicciolisce e svanisce
       for (const p of particles) {
         const t = p.age / p.life
-        const s = p.s * (1 - 0.65 * t)
-        tctx.globalAlpha = 1 - smooth(0.25, 1, t)
-        tctx.fillRect(p.x - s / 2, p.y - s / 2, s, s)
+        tctx.globalAlpha = 1 - smooth(0.2, 0.95, t)
+        drawDot(p.x, p.y, p.sx, p.sy, p.s, p.k0 * (1 - 0.7 * smooth(0, 1, t)))
       }
       tctx.globalAlpha = 1
     }
 
-    // Maschera del fumo: i quadratini in volo (più fumo man mano che si
-    // consumano) e, nel frame dell'esplosione, tutte le lettere piene
+    // Maschera del fumo: i puntini in volo (più fumo man mano che si
+    // consumano), un filo da quelli ristretti e, nel frame dell'esplosione,
+    // tutte le lettere piene
     const drawMask = () => {
-      if (!particles.length && !burstNow && maskEmpty) return
+      if (!particles.length && !burstNow && !shrunk && maskEmpty) return
       mctx.setTransform(1, 0, 0, 1, 0, 0)
       mctx.clearRect(0, 0, mask.width, mask.height)
       mctx.setTransform(mask.width / W, 0, 0, mask.height / H, 0, 0)
@@ -400,11 +435,18 @@ export default function SmokeTitle({ lines, className = '' }) {
       for (const p of particles) {
         const t = p.age / p.life
         mctx.globalAlpha = smooth(0, 0.3, t) * (1 - smooth(0.7, 1, t))
-        const r = p.s * (0.6 + t)
+        const r = p.s * p.k0 * (0.6 + t)
         mctx.fillRect(p.x - r, p.y - r, r * 2, r * 2)
       }
+      if (shrunk) {
+        for (const d of dots) {
+          if (!d.on || d.k >= 0.9) continue
+          mctx.globalAlpha = (1 - d.k) * 0.2
+          mctx.fillRect(d.x + dotC - d.s * 0.4, d.y + dotC - d.s * 0.4, d.s * 0.8, d.s * 0.8)
+        }
+      }
       mctx.globalAlpha = 1
-      maskEmpty = !particles.length && !burstNow
+      maskEmpty = !particles.length && !burstNow && !shrunk
       fluid.setMask(mask)
     }
 
@@ -417,13 +459,13 @@ export default function SmokeTitle({ lines, className = '' }) {
 
       if (ready) {
         if (mode === 'burst' && now - modeStart > HOLD_MS) reform(now)
-        else if (mode === 'reform' && letters.every((L) => L.dots.every((d) => d.on))) mode = 'idle'
-        updateLetters(now, dt)
+        else if (mode === 'reform' && dots.every((d) => d.on)) mode = 'idle'
+        updateDots(now, dt)
         updateParticles(dt)
       }
 
-      // Si passa alla canvas solo mentre qualcosa è staccato o in volo
-      const busy = particles.length > 0 || mode !== 'idle' || letters.some((L) => L.dots.some((d) => !d.on))
+      // Si passa alla canvas solo mentre qualcosa è ristretto, staccato o in volo
+      const busy = particles.length > 0 || mode !== 'idle' || dots.some((d) => d.sc !== 1)
       if (busy) {
         drawText()
         if (!showing) { showing = true; title.style.color = 'transparent' }
