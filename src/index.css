@@ -64,11 +64,11 @@ h1, h2, h3, .font-display {
 /* --- TITOLO DELLA HERO CHE SI FA FUMO --- */
 .smoke-letter { display: inline-block; }
 
-/* --- CHI SONO: punti di aggancio per lo scroll a dito (sipario chiuso / aperto) ---
-   Con la rotella lo scatto lo gestisce il componente; sui touch il browser */
+/* --- PUNTI DI AGGANCIO PER LO SCROLL A DITO (servizi, sipario di Chi sono) ---
+   Con la rotella lo scatto lo gestiscono i componenti; sui touch il browser */
 @media (pointer: coarse) {
   html { scroll-snap-type: y proximity; }
-  .about-snap { scroll-snap-align: start; }
+  .snap-point { scroll-snap-align: start; }
 }
 
 .hide-scrollbar::-webkit-scrollbar { display: none; }

@@ -2,11 +2,12 @@ import React, { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { ArrowLeft, ArrowRight, X } from 'lucide-react'
 import SmartImage from './SmartImage.jsx'
-import { setScrollLocked } from '../lib/smoothScroll.js'
+import { addWheelSnap, setScrollLocked } from '../lib/smoothScroll.js'
 
 // --- SERVIZI, STILE "DIGITAL PUNK" ---
 // Fondo rosso come la hero, elenco a righe spesse; un clic su una riga apre
 // un pannello laterale nero con l'approfondimento del servizio.
+// Dai progetti si arriva con un solo gesto della rotella, come il sipario di Chi sono.
 
 const pad = (n) => String(n).padStart(2, '0')
 
@@ -32,6 +33,7 @@ const getServiceDeliverables = (service, idx) => {
 export default function ServicesSection({ services, onCta, onContact }) {
   const [activeIndex, setActiveIndex] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
+  const sectionRef = useRef(null)
   const rowRefs = useRef([])
   const closeRef = useRef(null)
 
@@ -71,10 +73,25 @@ export default function ServicesSection({ services, onCta, onContact }) {
     wasOpen.current = isOpen
   }, [isOpen, activeIndex])
 
+  // Dall'ultima card dei progetti un gesto porta i servizi in cima allo schermo;
+  // risalendo dalla cima dei servizi si torna all'ultima card
+  useEffect(() => {
+    const section = sectionRef.current
+    return addWheelSnap((deltaY, pos, next) => {
+      const top = section.getBoundingClientRect().top + window.scrollY
+      const from = top - window.innerHeight // progetti finiti, servizi appena sotto lo schermo
+      if (deltaY > 0 && pos < top - 2 && next > from) return top
+      if (deltaY < 0 && pos > from + 2 && next < top) return from
+      return null
+    })
+  }, [])
+
   const marqueeItems = Array.from({ length: 10 })
 
   return (
-    <section id="services" className="relative z-10">
+    <section ref={sectionRef} id="services" className="relative z-10">
+      {/* Punto di aggancio per lo scroll a dito */}
+      <div aria-hidden="true" className="snap-point absolute left-0 top-0 h-px w-px" />
       {/* Fascia nera con la scritta che scorre: lo stacco netto dal nero dei progetti */}
       <div aria-hidden="true" className="bg-black text-[#ff2b1c] overflow-hidden py-3 md:py-4 select-none">
         <div className="punk-marquee flex w-max">

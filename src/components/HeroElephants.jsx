@@ -79,7 +79,7 @@ export default function HeroElephants() {
     >
       {/* Codec dichiarati: Safari che non decodifica il VP9 salta al MP4 invece di fermarsi */}
       {variant && <source src={`${SRC}${variant}.webm`} type='video/webm; codecs="vp9"' />}
-      {variant && <source src={`${SRC}${variant}.mp4`} type='video/mp4; codecs="avc1.640032"' />}}
+      {variant && <source src={`${SRC}${variant}.mp4`} type='video/mp4; codecs="avc1.640032"' />}
     </video>
   )
 }

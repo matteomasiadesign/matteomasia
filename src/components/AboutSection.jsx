@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { ArrowUpRight, Pause, Play, RotateCcw } from 'lucide-react'
-import { getLenis, setWheelInterceptor } from '../lib/smoothScroll.js'
+import { addWheelSnap } from '../lib/smoothScroll.js'
 
 // --- CHI SONO: LA STANZA ROSSA ---
 // Atmosfera alla David Lynch: un sipario di velluto si apre su una stanza con
@@ -17,8 +17,6 @@ const clamp01 = (v) => Math.min(Math.max(v, 0), 1)
 const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2)
 
 const CURTAIN_END = 0.8 // il sipario è tutto aperto a questo punto dello scroll
-const SNAP_S = 1.15 // durata dell'apertura (o chiusura) con la rotella, in secondi
-const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
 // Punti di aggancio per lo scroll a dito: sipario chiuso, sipario aperto
 const SNAP_POINTS = [0, 1]
 const pad = (n) => String(n).padStart(2, '0')
@@ -330,48 +328,17 @@ export default function AboutSection({ onContact }) {
     const schedule = () => { if (!raf) raf = requestAnimationFrame(update) }
 
     // --- Con la rotella: un gesto apre il sipario, uno lo richiude ---
-    let snapping = false
-    let swallowing = false // la coda d'inerzia del gesto che ha fatto scattare
-    let lastWheel = 0
-    let lastAbs = 0
-    const snap = (lenis, y) => {
-      snapping = true
-      swallowing = true
-      lenis.scrollTo(y, {
-        duration: SNAP_S,
-        easing: easeInOutCubic,
-        lock: true,
-        force: true,
-        onComplete: () => { snapping = false; lastWheel = performance.now() },
-      })
-    }
-    const intercept = ({ deltaY, event }) => {
-      const lenis = getLenis()
-      if (!lenis || !event.type.includes('wheel') || event.ctrlKey || !deltaY) return false
-      // Un gesto nuovo: una pausa, o una spinta più forte della coda d'inerzia
-      const now = performance.now()
-      const abs = Math.abs(deltaY)
-      const fresh = now - lastWheel > 160 || abs > lastAbs * 1.6 + 4
-      lastWheel = now
-      lastAbs = abs
-      // Durante lo scatto, e finché dura il gesto che l'ha lanciato, la rotella è nostra
-      if (snapping || (swallowing && !fresh)) { event.preventDefault(); return true }
-      swallowing = false
+    const resolveWheel = (deltaY, pos, next) => {
       const top = section.getBoundingClientRect().top + window.scrollY
       const end = top + section.offsetHeight - window.innerHeight // sipario aperto
-      if (end <= top) return false
-      const pos = lenis.animatedScroll
-      const next = lenis.targetScroll + deltaY
-      let to = null
+      if (end <= top) return null
       // Scendendo: arrivati al sipario (o a metà apertura) si va a sipario aperto
-      if (deltaY > 0 && pos < end - 2 && next > top) to = end
+      if (deltaY > 0 && pos < end - 2 && next > top) return end
       // Risalendo dai contatti ci si ferma sulla stanza; dalla stanza il sipario si chiude
-      else if (deltaY < 0 && pos > top + 2 && next < end) to = pos > end + 2 ? end : top
-      if (to === null) return false
-      event.preventDefault()
-      snap(lenis, to)
-      return true
+      if (deltaY < 0 && pos > top + 2 && next < end) return pos > end + 2 ? end : top
+      return null
     }
+    let removeSnap = null
 
     // Ascolta lo scroll solo quando la sezione è vicina allo schermo; lontano
     // dallo schermo mette in pausa anche le animazioni infinite (tende, luce,
@@ -383,13 +350,13 @@ export default function AboutSection({ onContact }) {
       if (entry.isIntersecting && !listening) {
         window.addEventListener('scroll', schedule, { passive: true })
         window.addEventListener('resize', schedule)
-        setWheelInterceptor(intercept)
+        removeSnap = addWheelSnap(resolveWheel)
         listening = true
         schedule()
       } else if (!entry.isIntersecting && listening) {
         window.removeEventListener('scroll', schedule)
         window.removeEventListener('resize', schedule)
-        setWheelInterceptor(null)
+        removeSnap()
         listening = false
         update()
       }
@@ -399,7 +366,7 @@ export default function AboutSection({ onContact }) {
 
     return () => {
       io.disconnect()
-      setWheelInterceptor(null)
+      removeSnap?.()
       cancelAnimationFrame(raf)
       window.removeEventListener('scroll', schedule)
       window.removeEventListener('resize', schedule)
@@ -418,7 +385,7 @@ export default function AboutSection({ onContact }) {
       <div id="bio" aria-hidden="true" className="absolute left-0 top-[calc(100%-100svh)]" />
       {/* Punti di aggancio per lo scroll a dito */}
       {SNAP_POINTS.map((p) => (
-        <div key={p} aria-hidden="true" className="about-snap absolute left-0 h-px w-px" style={{ top: `calc((100% - 100svh) * ${p})` }} />
+        <div key={p} aria-hidden="true" className="snap-point absolute left-0 h-px w-px" style={{ top: `calc((100% - 100svh) * ${p})` }} />
       ))}
       {/* Tutto il testo per chi usa un lettore di schermo, senza aspettare il film */}
       <div className="sr-only">
