@@ -89,7 +89,8 @@ export default function ServicesSection({ services, onCta, onContact }) {
   const marqueeItems = Array.from({ length: 10 })
 
   return (
-    <section ref={sectionRef} id="services" className="relative z-10">
+    // Alta almeno uno schermo: dopo lo scatto si vede la sezione intera, non tagliata
+    <section ref={sectionRef} id="services" className="relative z-10 min-h-[100svh] flex flex-col">
       {/* Punto di aggancio per lo scroll a dito */}
       <div aria-hidden="true" className="snap-point absolute left-0 top-0 h-px w-px" />
       {/* Fascia nera con la scritta che scorre: lo stacco netto dal nero dei progetti */}
@@ -105,39 +106,34 @@ export default function ServicesSection({ services, onCta, onContact }) {
         </div>
       </div>
 
-      <div data-nav-surface="red" className="punk-red text-black section-y">
-        <div className="wrap">
+      <div data-nav-surface="red" className="punk-red text-black section-y flex-1 flex flex-col justify-center">
+        {/* Da desktop due colonne: testata e invito a sinistra, con il vuoto in mezzo
+            che fa respirare la sezione; l'elenco a destra. Su mobile una sotto l'altra */}
+        <div className="wrap grid-12 lg:grid-rows-[auto_1fr]">
           {/* Testata */}
-          <div className="flex items-end justify-between gap-6">
-            <div>
-              <span className="block text-xs font-semibold uppercase tracking-widest mb-4">// Skills</span>
-              <h2 className="text-5xl md:text-7xl leading-[0.9]">What I do.</h2>
-              <p className="mt-5 text-base md:text-lg font-medium max-w-md">
-                {count} aree per una comunicazione visiva e digitale completa.
-              </p>
-            </div>
-            <span className="hidden md:block shrink-0 text-xs font-semibold uppercase tracking-widest tabular-nums">
-              {pad(count)} areas · {new Date().getFullYear()}<span className="punk-blink">_</span>
-            </span>
+          <div className="col-span-12 lg:col-span-4">
+            <span className="block text-xs font-semibold uppercase tracking-widest mb-4">// Skills</span>
+            <h2 className="text-5xl md:text-7xl xl:text-8xl leading-[0.9]">
+              What <span className="lg:block">I do.</span>
+            </h2>
+            <p className="mt-5 lg:mt-7 text-base md:text-lg font-medium max-w-[19rem] text-balance">
+              {count} aree per una comunicazione visiva e digitale completa.
+            </p>
           </div>
 
           {/* Elenco */}
-          <ul className="mt-14 md:mt-12 border-t-[3px] border-black">
+          <ul className="col-span-12 lg:col-span-8 lg:col-start-5 lg:row-span-2 lg:self-center mt-12 lg:mt-0 border-t-[3px] border-black">
             {services.map((s, i) => {
-              const tags = getServiceDeliverables(s, i)
               return (
                 <li key={s.id} className="border-b-[3px] border-black">
                   <button
                     ref={(el) => { rowRefs.current[i] = el }}
                     onClick={() => open(i)}
                     aria-haspopup="dialog"
-                    className="punk-row group w-full flex items-center gap-4 md:gap-8 px-2 md:px-4 py-6 md:py-5 text-left"
+                    className="punk-row group w-full flex items-center gap-4 md:gap-6 px-2 md:px-4 py-5 md:py-6 text-left"
                   >
                     <span className="shrink-0 text-xs md:text-sm font-semibold tabular-nums">[{pad(i + 1)}]</span>
-                    <span className="punk-row-title font-display flex-1 text-2xl md:text-3xl lg:text-4xl leading-[0.95] uppercase">{s.title}</span>
-                    <span className="hidden lg:block shrink-0 max-w-[220px] text-right text-[11px] font-semibold uppercase tracking-widest opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-200">
-                      {tags.slice(0, 3).join(' · ')}
-                    </span>
+                    <span className="punk-row-title font-display flex-1 text-2xl md:text-3xl xl:text-4xl leading-[0.95] uppercase">{s.title}</span>
                     <span className="shrink-0 text-sm md:text-base font-semibold" aria-hidden="true">
                       [<span className="group-hover:hidden group-focus-visible:hidden">+</span><span className="hidden group-hover:inline group-focus-visible:inline">→</span>]
                     </span>
@@ -147,14 +143,18 @@ export default function ServicesSection({ services, onCta, onContact }) {
             })}
           </ul>
 
-          <div className="flex justify-center mt-14 md:mt-12">
+          {/* Invito: a sinistra, lontano dal "+" in basso a destra; da desktop in fondo alla colonna */}
+          <div className="col-span-12 lg:col-span-4 lg:row-start-2 lg:self-end flex items-center gap-6 mt-12 lg:mt-10">
             <button
               onClick={onContact}
-              className="rounded-full hero-btn punk-shadow group flex items-center gap-3 px-8 py-4 border-[3px] border-black bg-transparent text-black font-semibold text-base md:text-lg active:scale-95 transition-colors duration-200"
+              className="rounded-full hero-btn punk-shadow group flex items-center gap-3 whitespace-nowrap px-7 py-3.5 md:px-8 md:py-4 border-[3px] border-black bg-transparent text-black font-semibold text-base md:text-lg active:scale-95 transition-colors duration-200"
             >
               Start a project
               <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </button>
+            <span className="hidden md:block lg:hidden xl:block text-xs font-semibold uppercase tracking-widest tabular-nums whitespace-nowrap">
+              {pad(count)} areas · {new Date().getFullYear()}<span className="punk-blink">_</span>
+            </span>
           </div>
         </div>
       </div>
