@@ -478,7 +478,7 @@ export default function Admin() {
       {showForm && (
         <div className="fixed inset-0 z-[80] flex items-end md:items-center justify-center p-0 md:p-6">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={closeForm} />
-          <form onSubmit={handleSave} className={`relative w-full md:max-w-lg ${cBgSec} rounded-t-3xl md:rounded-3xl p-6 md:p-8 border ${cBorder} max-h-[90vh] overflow-y-auto flex flex-col gap-4`}>
+          <form onSubmit={handleSave} data-lenis-prevent className={`relative w-full md:max-w-lg ${cBgSec} rounded-t-3xl md:rounded-3xl p-6 md:p-8 border ${cBorder} max-h-[90vh] overflow-y-auto overscroll-contain flex flex-col gap-4`}>
             <div className="flex items-center justify-between">
               <h2 className={`text-xl font-semibold ${cTextMain}`}>{form.id ? 'Modifica progetto' : 'Nuovo progetto'}</h2>
               <button type="button" onClick={closeForm} className={`p-2 rounded-full ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'} ${cTextMain}`}><X size={20} /></button>
@@ -566,7 +566,7 @@ export default function Admin() {
       {showSvcForm && (
         <div className="fixed inset-0 z-[80] flex items-end md:items-center justify-center p-0 md:p-6">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={closeSvcForm} />
-          <form onSubmit={handleSvcSave} className={`relative w-full md:max-w-lg ${cBgSec} rounded-t-3xl md:rounded-3xl p-6 md:p-8 border ${cBorder} max-h-[90vh] overflow-y-auto flex flex-col gap-4`}>
+          <form onSubmit={handleSvcSave} data-lenis-prevent className={`relative w-full md:max-w-lg ${cBgSec} rounded-t-3xl md:rounded-3xl p-6 md:p-8 border ${cBorder} max-h-[90vh] overflow-y-auto overscroll-contain flex flex-col gap-4`}>
             <div className="flex items-center justify-between">
               <h2 className={`text-xl font-semibold ${cTextMain}`}>{svcForm.id ? 'Modifica servizio' : 'Nuovo servizio'}</h2>
               <button type="button" onClick={closeSvcForm} className={`p-2 rounded-full ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'} ${cTextMain}`}><X size={20} /></button>

@@ -8,24 +8,27 @@ let lenis = null
 // --- Scatti con la rotella ---
 // Una sezione registra una funzione che, dato il gesto, dice dove portare la
 // pagina (px) o null per lasciare lo scroll libero (es. Chi sono: un gesto apre
-// il sipario). Lo scatto si prende la rotella finché dura il gesto che l'ha lanciato.
-const SNAP_S = 1.15 // durata dello scatto, in secondi
+// il sipario). Durante lo scatto la rotella è ferma; dopo si scarta solo la coda
+// d'inerzia del trackpad (in calo), mai le tacche nuove della rotella del mouse.
+const SNAP_S = 0.8 // durata dello scatto, in secondi
+const TAIL_MS = 400 // oltre questo tempo dalla fine dello scatto non si scarta più niente
 const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
 const snaps = new Set()
 let snapping = false
 let swallowing = false // la coda d'inerzia del gesto che ha fatto scattare
+let snapEnd = 0
 let lastWheel = 0
 let lastAbs = 0
 
 const interceptWheel = ({ deltaY, event }) => {
   if (!snaps.size || !event.type.includes('wheel') || event.ctrlKey || !deltaY) return false
-  // Un gesto nuovo: una pausa, o una spinta più forte della coda d'inerzia
+  // Coda d'inerzia: arriva a raffica e cala (il mouse invece manda tacche uguali)
   const now = performance.now()
   const abs = Math.abs(deltaY)
-  const fresh = now - lastWheel > 160 || abs > lastAbs * 1.6 + 4
+  const tail = now - lastWheel <= 160 && (abs < lastAbs || abs <= 3) && now - snapEnd < TAIL_MS
   lastWheel = now
   lastAbs = abs
-  if (snapping || (swallowing && !fresh)) { event.preventDefault(); return true }
+  if (snapping || (swallowing && tail)) { event.preventDefault(); return true }
   swallowing = false
   const pos = lenis.animatedScroll
   const next = lenis.targetScroll + deltaY
@@ -36,11 +39,12 @@ const interceptWheel = ({ deltaY, event }) => {
     snapping = true
     swallowing = true
     lenis.scrollTo(to, {
-      duration: SNAP_S,
+      // Uno scatto corto (es. dai contatti alla stanza) dura poco: non tiene ferma la rotella
+      duration: Math.min(SNAP_S, 0.25 + (Math.abs(to - pos) / window.innerHeight) * 0.6),
       easing: easeInOutCubic,
       lock: true,
       force: true,
-      onComplete: () => { snapping = false; lastWheel = performance.now() },
+      onComplete: () => { snapping = false; snapEnd = performance.now() },
     })
     return true
   }

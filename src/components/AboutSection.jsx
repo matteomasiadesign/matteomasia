@@ -17,8 +17,6 @@ const clamp01 = (v) => Math.min(Math.max(v, 0), 1)
 const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2)
 
 const CURTAIN_END = 0.8 // il sipario è tutto aperto a questo punto dello scroll
-// Punti di aggancio per lo scroll a dito: sipario chiuso, sipario aperto
-const SNAP_POINTS = [0, 1]
 const pad = (n) => String(n).padStart(2, '0')
 
 const mark = 'text-white font-semibold'
@@ -371,13 +369,42 @@ export default function AboutSection() {
       const top = section.getBoundingClientRect().top + window.scrollY
       const end = top + section.offsetHeight - window.innerHeight // sipario aperto
       if (end <= top) return null
-      // Scendendo: arrivati al sipario (o a metà apertura) si va a sipario aperto
-      if (deltaY > 0 && pos < end - 2 && next > top) return end
+      // Scendendo: quando il sipario ha coperto più di metà schermo (o è a metà
+      // apertura) si va a sipario aperto, senza notch passati a guardare il velluto
+      if (deltaY > 0 && pos < end - 2 && next > top - window.innerHeight * 0.4) return end
       // Risalendo dai contatti ci si ferma sulla stanza; dalla stanza il sipario si chiude
       if (deltaY < 0 && pos > top + 2 && next < end) return pos > end + 2 ? end : top
       return null
     }
     let removeSnap = null
+
+    // --- A dito: il sipario non resta a metà. Quando lo scroll si ferma lo si
+    // porta aperto o chiuso, nella direzione in cui si stava andando (mai contro) ---
+    const coarse = window.matchMedia('(pointer: coarse)')
+    let lastY = window.scrollY
+    let dir = 1
+    let touching = false
+    let settle = 0
+    const finishCurtain = () => {
+      if (touching || !coarse.matches) return
+      const rect = section.getBoundingClientRect()
+      const span = rect.height - window.innerHeight
+      const p = span > 0 ? -rect.top / span : 0
+      if (p <= 0.02 || p >= CURTAIN_END) return
+      const top = rect.top + window.scrollY
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      window.scrollTo({ top: dir > 0 ? top + span : top, behavior: reduce ? 'auto' : 'smooth' })
+    }
+    const onScroll = () => {
+      schedule()
+      const y = window.scrollY
+      if (y !== lastY) dir = Math.sign(y - lastY)
+      lastY = y
+      clearTimeout(settle)
+      settle = setTimeout(finishCurtain, 150)
+    }
+    const onTouchStart = () => { touching = true; clearTimeout(settle) }
+    const onTouchEnd = () => { touching = false; clearTimeout(settle); settle = setTimeout(finishCurtain, 150) }
 
     // Ascolta lo scroll solo quando la sezione è vicina allo schermo; lontano
     // dallo schermo mette in pausa anche le animazioni infinite (luce, grana)
@@ -386,14 +413,20 @@ export default function AboutSection() {
       section.classList.toggle('lynch-idle', !entry.isIntersecting)
       setInView(entry.isIntersecting)
       if (entry.isIntersecting && !listening) {
-        window.addEventListener('scroll', schedule, { passive: true })
+        window.addEventListener('scroll', onScroll, { passive: true })
         window.addEventListener('resize', schedule)
+        window.addEventListener('touchstart', onTouchStart, { passive: true })
+        window.addEventListener('touchend', onTouchEnd, { passive: true })
         removeSnap = addWheelSnap(resolveWheel)
         listening = true
+        lastY = window.scrollY
         schedule()
       } else if (!entry.isIntersecting && listening) {
-        window.removeEventListener('scroll', schedule)
+        window.removeEventListener('scroll', onScroll)
         window.removeEventListener('resize', schedule)
+        window.removeEventListener('touchstart', onTouchStart)
+        window.removeEventListener('touchend', onTouchEnd)
+        clearTimeout(settle)
         removeSnap()
         listening = false
         update()
@@ -406,8 +439,11 @@ export default function AboutSection() {
       io.disconnect()
       removeSnap?.()
       cancelAnimationFrame(raf)
-      window.removeEventListener('scroll', schedule)
+      clearTimeout(settle)
+      window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', schedule)
+      window.removeEventListener('touchstart', onTouchStart)
+      window.removeEventListener('touchend', onTouchEnd)
     }
   }, [])
 
@@ -425,10 +461,6 @@ export default function AboutSection() {
     <section ref={sectionRef} data-nav-surface="velvet" aria-label="About" className="relative z-10 bg-black h-[145svh] md:h-[200vh]">
       {/* Il menu porta a sipario già aperto */}
       <div id="bio" aria-hidden="true" className="absolute left-0 top-[calc(100%-100svh)]" />
-      {/* Punti di aggancio per lo scroll a dito */}
-      {SNAP_POINTS.map((p) => (
-        <div key={p} aria-hidden="true" className="snap-point absolute left-0 h-px w-px" style={{ top: `calc((100% - 100svh) * ${p})` }} />
-      ))}
 
       <div ref={stageRef} className={`sticky top-0 h-[100svh] overflow-hidden ${started ? 'is-open' : ''}`}>
         {/* La stanza: buio e pavimento a zig-zag */}
