@@ -685,7 +685,7 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
             <div className="w-full md:w-[360px]">
               <div className="flex items-baseline justify-between gap-4 mb-3">
                 <span className="text-xs font-semibold uppercase tracking-widest text-[#ff2b1c]">
-                  Selected work
+                  Progetti selezionati
                 </span>
                 <span className={`md:hidden text-xs font-semibold tracking-widest tabular-nums ${cTextMuted}`}>
                   <span className={cTextMain}>{pad(active + 1)}</span> / {pad(count)}
@@ -704,12 +704,12 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
               </div>
               <dl className={`mt-4 md:mt-6 text-sm font-medium ${cTextMain}`}>
                 <div className="flex justify-between gap-4 py-2 border-t border-[#ff2b1c]/40">
-                  <dt className={`text-xs font-semibold uppercase tracking-widest ${cTextMuted} pt-0.5`}>Category</dt>
+                  <dt className={`text-xs font-semibold uppercase tracking-widest ${cTextMuted} pt-0.5`}>Categoria</dt>
                   <dd key={`c-${current?.id}`} className="slides-swap text-right">{current?.category}</dd>
                 </div>
-                {/* Su mobile il contatore sta accanto a "Selected work" */}
+                {/* Su mobile il contatore sta accanto a "Progetti selezionati" */}
                 <div className="hidden md:flex justify-between gap-4 py-2 border-t border-[#ff2b1c]/40">
-                  <dt className={`text-xs font-semibold uppercase tracking-widest ${cTextMuted} pt-0.5`}>Project</dt>
+                  <dt className={`text-xs font-semibold uppercase tracking-widest ${cTextMuted} pt-0.5`}>Progetto</dt>
                   <dd className="tabular-nums">{pad(active + 1)} / {pad(count)}</dd>
                 </div>
                 {current?.description && (
@@ -747,7 +747,7 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
                     to={`/progetti/${current.slug || current.id}`}
                     className="rounded-full group flex items-center justify-center gap-2 whitespace-nowrap h-12 md:h-auto px-5 md:px-6 md:py-3 border-2 border-[#ff2b1c] bg-[#ff2b1c] text-black font-semibold text-sm md:text-base hover:bg-transparent hover:text-[#ff2b1c] active:scale-95 transition-colors duration-200"
                   >
-                    Open project
+                    Apri progetto
                     <ArrowRight size={16} className="hidden md:block group-hover:translate-x-1 transition-transform" />
                   </Link>
                 )}
@@ -755,7 +755,7 @@ export default function ClothCarousel({ projects, isDark, cTextMain, cTextMuted 
                   to="/progetti"
                   className="rounded-full hero-btn-red group flex items-center justify-center gap-2 whitespace-nowrap h-12 md:h-auto px-5 md:px-6 md:py-3 border-2 border-[#ff2b1c] bg-transparent text-[#ff2b1c] font-semibold text-sm md:text-base active:scale-95 transition-colors duration-200"
                 >
-                  View all
+                  Archivio
                 </Link>
               </div>
             </div>

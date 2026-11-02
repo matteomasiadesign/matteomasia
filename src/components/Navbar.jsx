@@ -287,13 +287,14 @@ export default function Navbar({ menuItems, onSection }) {
         {...(past && { inert: '' })}
       >
         <div className="wrap flex justify-center items-center h-[76px] text-sm font-medium">
+          {/* L'archivio per primo: è la priorità */}
           <nav aria-label="Principale" className="flex gap-8">
-            {menuItems.map((item) => (
+            <Link to="/progetti" className="hover:opacity-60 transition-opacity">Archivio</Link>
+            {menuItems.filter((item) => item.hero !== false).map((item) => (
               <a key={item.id} href={`#${item.id}`} onClick={(e) => anchorTop(e, item.id)} className="hover:opacity-60 transition-opacity">
                 {item.name}
               </a>
             ))}
-            <Link to="/progetti" className="hover:opacity-60 transition-opacity">Archive</Link>
           </nav>
         </div>
       </header>
@@ -331,7 +332,7 @@ export default function Navbar({ menuItems, onSection }) {
             className={`h-11 pl-4 pr-5 rounded-full flex items-center gap-2 border text-sm font-semibold transition-colors duration-200 ${current === 'top' ? 'bg-[#ff2b1c] text-black border-transparent' : 'border-[#ff2b1c]/50 hover:bg-[#ff2b1c] hover:text-black focus-visible:bg-[#ff2b1c] focus-visible:text-black'}`}
           >
             <ArrowUp size={16} strokeWidth={2.5} />
-            Go to top
+            Torna su
           </a>
           <button
             type="button"
@@ -344,30 +345,31 @@ export default function Navbar({ menuItems, onSection }) {
         </div>
 
         <nav aria-label="Menu" className="px-3 pt-2 pb-3">
+          {/* L'archivio per primo, poi le sezioni della pagina */}
           <ul className="flex flex-col gap-1">
+            <li className="menu-item" style={{ '--i': 1 }}>
+              <Link
+                to="/progetti"
+                className="flex items-baseline gap-4 rounded-full px-5 py-3 hover:bg-[#ff2b1c] hover:text-black focus-visible:bg-[#ff2b1c] focus-visible:text-black transition-colors duration-200"
+              >
+                <span className="text-xs font-semibold tabular-nums opacity-70">01</span>
+                <span className="font-display text-4xl md:text-5xl leading-none uppercase">Archivio</span>
+                <ArrowUpRight size={22} className="ml-auto self-center" />
+              </Link>
+            </li>
             {menuItems.map((item, i) => (
-              <li key={item.id} className="menu-item" style={{ '--i': i + 1 }}>
+              <li key={item.id} className="menu-item" style={{ '--i': i + 2 }}>
                 <a
                   href={`#${item.id}`}
                   onClick={(e) => goTo(e, item.id)}
                   aria-current={current === item.id ? 'location' : undefined}
                   className={`flex items-baseline gap-4 rounded-full px-5 py-3 transition-colors duration-200 ${current === item.id ? 'bg-[#ff2b1c] text-black' : 'hover:bg-[#ff2b1c] hover:text-black focus-visible:bg-[#ff2b1c] focus-visible:text-black'}`}
                 >
-                  <span className="text-xs font-semibold tabular-nums opacity-70">{String(i + 1).padStart(2, '0')}</span>
+                  <span className="text-xs font-semibold tabular-nums opacity-70">{String(i + 2).padStart(2, '0')}</span>
                   <span className="font-display text-4xl md:text-5xl leading-none uppercase whitespace-nowrap">{item.name}</span>
                 </a>
               </li>
             ))}
-            <li className="menu-item" style={{ '--i': menuItems.length + 1 }}>
-              <Link
-                to="/progetti"
-                className="flex items-baseline gap-4 rounded-full px-5 py-3 hover:bg-[#ff2b1c] hover:text-black focus-visible:bg-[#ff2b1c] focus-visible:text-black transition-colors duration-200"
-              >
-                <span className="text-xs font-semibold tabular-nums opacity-70">{String(menuItems.length + 1).padStart(2, '0')}</span>
-                <span className="font-display text-4xl md:text-5xl leading-none uppercase">Archive</span>
-                <ArrowUpRight size={22} className="ml-auto self-center" />
-              </Link>
-            </li>
           </ul>
         </nav>
 

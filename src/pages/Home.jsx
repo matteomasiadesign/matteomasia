@@ -261,11 +261,12 @@ export default function Home() {
     else window.open(link, '_blank', 'noopener,noreferrer')
   }
 
+  // hero: false → solo nel menu del "+": nella riga in alto della hero c'è l'Archivio
   const menuItems = [
-    { name: 'Work', id: 'projects' },
-    { name: 'What I do', id: 'services' },
-    { name: 'About', id: 'bio' },
-    { name: 'Contact', id: 'contact' },
+    { name: 'Progetti', id: 'projects', hero: false },
+    { name: 'Cosa faccio', id: 'services' },
+    { name: 'Chi sono', id: 'bio' },
+    { name: 'Contatti', id: 'contact' },
   ]
 
   const t = getTokens(isDark)
@@ -314,18 +315,15 @@ export default function Home() {
               </FadeIn>
             </div>
 
-            {/* Un'azione principale piena e una secondaria a cornice. Su mobile stanno in
-                fondo, sulla sfumatura scura: rosse come i bottoni delle sezioni nere, alte
-                come il "+" (h-12 centrato sui suoi 56px) e con spazio a destra per lui */}
+            {/* Una sola azione: l'archivio di tutti i progetti. Su mobile sta in fondo,
+                sulla sfumatura scura: rossa come i bottoni delle sezioni nere, alta come
+                il "+" (h-12 centrato sui suoi 56px) e con spazio a destra per lui */}
             <FadeIn delay={1050} className="self-stretch ml-2 mr-[72px] md:self-auto md:mx-0">
-              <div className="flex gap-2 md:gap-4">
-                <a {...anchor('contact')} className="rounded-full hero-btn-red group flex-1 md:flex-none inline-flex items-center justify-center gap-2 whitespace-nowrap h-12 md:h-auto px-3 md:px-7 md:py-3 md:min-w-[13rem] border-2 border-[#ff2b1c] bg-[#ff2b1c] text-black md:border-black md:bg-black md:text-[#ff2b1c] font-semibold text-sm md:text-base active:scale-95 transition-all duration-200">
-                  Work with me
+              <div className="flex">
+                <Link to="/progetti" className="rounded-full hero-btn-red group flex-1 md:flex-none inline-flex items-center justify-center gap-2 whitespace-nowrap h-12 md:h-auto px-3 md:px-7 md:py-3 md:min-w-[13rem] border-2 border-[#ff2b1c] bg-[#ff2b1c] text-black md:border-black md:bg-black md:text-[#ff2b1c] font-semibold text-sm md:text-base active:scale-95 transition-all duration-200">
+                  Archivio
                   <ArrowRight size={18} className="hidden md:block group-hover:translate-x-1 transition-transform" />
-                </a>
-                <a {...anchor('projects')} className="rounded-full hero-btn flex-1 md:flex-none inline-flex items-center justify-center whitespace-nowrap h-12 md:h-auto px-3 md:px-7 md:py-3 md:min-w-[13rem] border-2 border-[#ff2b1c] bg-transparent text-[#ff2b1c] md:border-black md:text-black font-semibold text-sm md:text-base active:scale-95 transition-all duration-200">
-                  Archive
-                </a>
+                </Link>
               </div>
             </FadeIn>
           </div>
@@ -344,12 +342,12 @@ export default function Home() {
         <AboutSection />
 
         {/* --- CONTATTI --- */}
-        {/* Stessa impaginazione di "What I do": testata a sinistra, elenco a righe a destra */}
+        {/* Stessa impaginazione di "Cosa faccio": testata a sinistra, elenco a righe a destra */}
         <section id="contact" data-nav-surface="red" className="punk-red text-black relative z-10 section-y">
           <div className="wrap grid-12 lg:grid-rows-[auto_1fr]">
             {/* Testata */}
             <FadeIn className="col-span-12 lg:col-span-4">
-              <span className="block text-xs font-semibold uppercase tracking-widest mb-4">// Contact</span>
+              <span className="block text-xs font-semibold uppercase tracking-widest mb-4">// Contatti</span>
               <h2 className="text-5xl md:text-7xl xl:text-8xl leading-[0.9]">
                 Let's <span className="lg:block">talk.</span>
               </h2>
@@ -395,14 +393,14 @@ export default function Home() {
               {/* Form: stesse righe sottili, nessun titolo grande */}
               <FadeIn delay={200}>
                 <form onSubmit={handleFormSubmit} noValidate className="mt-16 md:mt-20 flex flex-col gap-8">
-                  <span className={label}>// Or write here</span>
+                  <span className={label}>// Oppure scrivimi qui</span>
 
                   <div aria-live="polite">
                     {formStatus === 'success' && (
                       <div className="border-[3px] border-black p-6 flex items-start gap-4">
                         <Check size={24} className="shrink-0" />
                         <div>
-                          <p className="text-lg font-semibold">Message sent.</p>
+                          <p className="text-lg font-semibold">Messaggio inviato.</p>
                           <p className="text-sm font-medium">Ti risponderò a breve.</p>
                         </div>
                       </div>
@@ -413,7 +411,7 @@ export default function Home() {
                     <>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div>
-                          <label htmlFor="f-nome" className={label}>Name</label>
+                          <label htmlFor="f-nome" className={label}>Nome</label>
                           <input id="f-nome" name="nome" type="text" autoComplete="name" required disabled={submitting} className={field}
                             value={formData.nome} onChange={(e) => setFormData({ ...formData, nome: e.target.value })} />
                         </div>
@@ -425,28 +423,28 @@ export default function Home() {
                         </div>
                       </div>
                       <div>
-                        <label htmlFor="f-oggetto" className={label}>Subject <span className="normal-case tracking-normal font-medium">(facoltativo)</span></label>
+                        <label htmlFor="f-oggetto" className={label}>Oggetto <span className="normal-case tracking-normal font-medium">(facoltativo)</span></label>
                         <input id="f-oggetto" name="oggetto" type="text" disabled={submitting} className={field}
                           value={formData.oggetto} onChange={(e) => setFormData({ ...formData, oggetto: e.target.value })} />
                       </div>
                       <div>
-                        <label htmlFor="f-messaggio" className={label}>Message</label>
+                        <label htmlFor="f-messaggio" className={label}>Messaggio</label>
                         <textarea id="f-messaggio" name="messaggio" required disabled={submitting} rows={3} className={`${field} resize-none`}
                           value={formData.messaggio} onChange={(e) => setFormData({ ...formData, messaggio: e.target.value })} />
                       </div>
 
                       {formError && <p id="form-error" role="alert" className="text-sm font-semibold bg-black text-[#ff2b1c] px-3 py-2 w-fit">{formError}</p>}
 
-                      {/* Stesso bottone di "Start a project" */}
+                      {/* Stesso bottone di "Inizia un progetto" */}
                       <button
                         type="submit"
                         disabled={submitting}
                         className="rounded-full hero-btn punk-shadow group self-start flex items-center gap-3 whitespace-nowrap px-7 py-3.5 md:px-8 md:py-4 border-2 border-black bg-transparent text-black font-semibold text-base md:text-lg active:scale-95 transition-colors duration-200 disabled:opacity-60"
                       >
                         {submitting ? (
-                          <><span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true" /> Sending…</>
+                          <><span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true" /> Invio…</>
                         ) : (
-                          <>Send message <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" /></>
+                          <>Invia messaggio <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" /></>
                         )}
                       </button>
                     </>
@@ -477,11 +475,11 @@ export default function Home() {
           <div className="pt-5 border-t border-[#ff2b1c]/40 grid-12 gap-y-4 text-xs font-semibold uppercase tracking-widest">
             <p className="col-span-12 md:col-span-4">© {new Date().getFullYear()} Matteo Masia · P.IVA 03062630904</p>
             <nav aria-label="Footer" className="col-span-12 md:col-span-5 flex flex-wrap gap-x-6 gap-y-2">
-              <Link to="/progetti" className="hover:text-white transition-colors">Archive</Link>
+              <Link to="/progetti" className="hover:text-white transition-colors">Archivio</Link>
               <a href="https://instagram.com/matteomasiadesign" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Instagram</a>
               <a href="https://flickr.com/matteomasiaphotography" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Flickr</a>
             </nav>
-            <a {...anchor('home')} className="col-span-12 md:col-span-3 md:justify-self-end hover:text-white transition-colors">Back to top ↑</a>
+            <a {...anchor('home')} className="col-span-12 md:col-span-3 md:justify-self-end hover:text-white transition-colors">Torna su ↑</a>
           </div>
         </div>
       </footer>

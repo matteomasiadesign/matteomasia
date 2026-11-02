@@ -114,7 +114,7 @@ export default function ServicesSection({ services, onCta, onContact }) {
         <div className="wrap grid-12 lg:grid-rows-[auto_1fr] relative">
           {/* Testata */}
           <div className="col-span-12 lg:col-span-4">
-            <span className="block text-xs font-semibold uppercase tracking-widest mb-4">// Skills</span>
+            <span className="block text-xs font-semibold uppercase tracking-widest mb-4">// Competenze</span>
             <h2 className="text-5xl md:text-7xl xl:text-8xl leading-[0.9]">
               What <span className="lg:block">I do.</span>
             </h2>
@@ -151,7 +151,7 @@ export default function ServicesSection({ services, onCta, onContact }) {
               onClick={onContact}
               className="rounded-full hero-btn punk-shadow group flex items-center gap-3 whitespace-nowrap px-7 py-3.5 md:px-8 md:py-4 border-2 border-black bg-transparent text-black font-semibold text-base md:text-lg active:scale-95 transition-colors duration-200"
             >
-              Start a project
+              Inizia un progetto
               <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
@@ -203,7 +203,7 @@ export default function ServicesSection({ services, onCta, onContact }) {
                     </p>
                   )}
 
-                  <span className="block mt-10 mb-3 text-xs font-semibold uppercase tracking-widest text-[#ff2b1c]">// Deliverables</span>
+                  <span className="block mt-10 mb-3 text-xs font-semibold uppercase tracking-widest text-[#ff2b1c]">// Cosa include</span>
                   <ul className="flex flex-wrap gap-2">
                     {deliverables.map((item) => (
                       <li key={item} className="rounded-full px-3.5 py-1.5 border-2 border-[#ff2b1c] text-xs font-semibold uppercase tracking-wider">
@@ -224,7 +224,7 @@ export default function ServicesSection({ services, onCta, onContact }) {
                         onClick={() => { close(); onCta(service.cta_link) }}
                         className="rounded-full punk-btn-fill group flex items-center gap-2 px-6 py-3 border-2 border-[#ff2b1c] bg-[#ff2b1c] text-black font-semibold text-sm md:text-base active:scale-95 transition-colors duration-200"
                       >
-                        {service.cta_label || 'Explore work'}
+                        {service.cta_label || 'Vedi i lavori'}
                         <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                       </button>
                     )}
@@ -232,17 +232,17 @@ export default function ServicesSection({ services, onCta, onContact }) {
                       onClick={() => { close(); onContact() }}
                       className="rounded-full hero-btn-red px-6 py-3 border-2 border-[#ff2b1c] text-[#ff2b1c] font-semibold text-sm md:text-base active:scale-95 transition-colors duration-200"
                     >
-                      Let's talk
+                      Parliamone
                     </button>
                   </div>
 
                   {count > 1 && (
                     <div className="mt-12 pt-5 border-t border-[#ff2b1c]/40 flex justify-between text-xs font-semibold uppercase tracking-widest">
                       <button onClick={() => step(-1)} className="flex items-center gap-2 py-3 hover:text-[#ff2b1c] transition-colors">
-                        <ArrowLeft size={14} /> Previous
+                        <ArrowLeft size={14} /> Precedente
                       </button>
                       <button onClick={() => step(1)} className="flex items-center gap-2 py-3 hover:text-[#ff2b1c] transition-colors">
-                        Next <ArrowRight size={14} />
+                        Successivo <ArrowRight size={14} />
                       </button>
                     </div>
                   )}

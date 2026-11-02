@@ -458,7 +458,7 @@ export default function AboutSection() {
 
   return (
     // Su mobile il sipario si apre in poco meno di mezzo schermo di scroll
-    <section ref={sectionRef} data-nav-surface="velvet" aria-label="About" className="relative z-10 bg-black h-[145svh] md:h-[200vh]">
+    <section ref={sectionRef} data-nav-surface="velvet" aria-label="Chi sono" className="relative z-10 bg-black h-[145svh] md:h-[200vh]">
       {/* Il menu porta a sipario già aperto */}
       <div id="bio" aria-hidden="true" className="absolute left-0 top-[calc(100%-100svh)]" />
 
