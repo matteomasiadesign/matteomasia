@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowRight, ArrowUpRight, Copy, Check, MessageCircle, Clapperboard } from 'lucide-react'
+import { ArrowRight, Copy, Check, Clapperboard } from 'lucide-react'
 import {
   TbBrandAdobePhotoshop,
   TbBrandAdobeIllustrator,
@@ -23,6 +23,7 @@ import HeroFluid from '../components/HeroFluid.jsx'
 import HeroElephants from '../components/HeroElephants.jsx'
 import ServicesSection from '../components/ServicesSection.jsx'
 import AboutSection from '../components/AboutSection.jsx'
+import SmokeVideo from '../components/SmokeVideo.jsx'
 import Navbar from '../components/Navbar.jsx'
 import { scrollToTarget } from '../lib/smoothScroll.js'
 
@@ -143,6 +144,14 @@ const HERO_LINES = ['Matteo Masia']
 const EMAIL = 'matteomasiadesign@gmail.com'
 const PHONE = '+393495862375'
 
+// Recapiti della sezione contatti; "copy" aggiunge il pulsante per copiare
+const CONTACTS = [
+  { label: 'Email', value: EMAIL, href: `mailto:${EMAIL}`, copy: EMAIL },
+  { label: 'WhatsApp', value: '+39 349 586 2375', href: 'https://wa.me/393495862375', external: true, copy: PHONE },
+  { label: 'Instagram', value: '@matteomasiadesign', href: 'https://instagram.com/matteomasiadesign', external: true },
+  { label: 'Flickr', value: 'matteomasiaphotography', href: 'https://flickr.com/matteomasiaphotography', external: true },
+]
+
 // Copia negli appunti, con il vecchio metodo come riserva (http, browser datati)
 const copyText = async (text) => {
   try {
@@ -158,7 +167,7 @@ const copyText = async (text) => {
 }
 
 const label = 'block text-xs font-semibold uppercase tracking-widest'
-const field = 'field w-full bg-transparent rounded-none border-0 border-b-[3px] border-black/25 px-0 py-3 text-lg text-black placeholder:text-black/40 focus:border-black transition-colors disabled:opacity-50'
+const field = 'field w-full bg-transparent rounded-none border-0 border-b-[3px] border-black/25 px-0 py-3 text-base md:text-lg text-black placeholder:text-black/40 focus:border-black transition-colors disabled:opacity-50'
 
 export default function Home() {
   const { isDark } = useTheme()
@@ -263,12 +272,6 @@ export default function Home() {
   const { cBgMain, cTextMain, cTextMuted } = t
   const submitting = formStatus === 'submitting'
 
-  const CopiedBadge = () => (
-    <span className="flex items-center gap-1 text-xs font-semibold uppercase tracking-widest bg-black text-[#ff2b1c] px-2 py-1 shrink-0">
-      <Check size={12} /> Copied
-    </span>
-  )
-
   return (
     <div className="min-h-screen w-full bg-black font-sans selection:bg-[#ff2b1c] selection:text-black relative overflow-x-clip">
       {/* --- NAVIGAZIONE: riga in alto nella hero, poi il "+" in basso a destra --- */}
@@ -341,72 +344,65 @@ export default function Home() {
         <AboutSection />
 
         {/* --- CONTATTI --- */}
+        {/* Stessa impaginazione di "What I do": testata a sinistra, elenco a righe a destra */}
         <section id="contact" data-nav-surface="red" className="punk-red text-black relative z-10 section-y">
-          <div className="wrap">
-            <FadeIn>
-              <p className={`${label} flex items-center gap-2`}>
-                Local time · Porto Torres <LocalTime />
+          <div className="wrap grid-12 lg:grid-rows-[auto_1fr]">
+            {/* Testata */}
+            <FadeIn className="col-span-12 lg:col-span-4">
+              <span className="block text-xs font-semibold uppercase tracking-widest mb-4">// Contact</span>
+              <h2 className="text-5xl md:text-7xl xl:text-8xl leading-[0.9]">
+                Let's <span className="lg:block">talk.</span>
+              </h2>
+              <p className="mt-5 lg:mt-7 text-base md:text-lg font-medium max-w-[19rem] text-balance">
+                Una collaborazione, un preventivo o due chiacchiere: rispondo entro 24 ore.
               </p>
-              <h2 className="mt-4 text-[clamp(3.5rem,9vw,8rem)] leading-[0.85] uppercase">Let's talk.</h2>
             </FadeIn>
 
-            <div className="grid-12 gap-y-14 mt-14 md:mt-14">
-              <div className="col-span-12 md:col-span-5 flex flex-col gap-10 md:gap-8">
-                <FadeIn delay={100}>
-                  <p className="text-xl font-medium leading-snug [text-wrap:pretty]">
-                    Vuoi propormi una collaborazione, richiedere un preventivo o scambiare due chiacchiere?
-                  </p>
-                  <p className="mt-3 text-sm font-semibold">Rispondo di solito entro 24 ore.</p>
-                </FadeIn>
-
-                <FadeIn delay={200}>
-                  <dl className="border-t-[3px] border-black">
-                    <div className="py-5 md:py-4 border-b-[3px] border-black">
-                      <dt className={`${label} mb-2`}>Email</dt>
-                      <dd className="flex flex-wrap items-center gap-3">
-                        <a href={`mailto:${EMAIL}`} className="text-lg md:text-xl font-semibold break-all hover:underline underline-offset-4 decoration-2">{EMAIL}</a>
-                        <button onClick={() => handleCopy(EMAIL, 'email')} aria-label="Copia l'indirizzo email" className="w-11 h-11 flex items-center justify-center hover:bg-black hover:text-[#ff2b1c] transition-colors">
-                          {copiedData === 'email' ? <CopiedBadge /> : <Copy size={18} />}
+            <div className="col-span-12 lg:col-span-8 lg:col-start-5 lg:row-span-2 mt-12 lg:mt-0">
+              {/* Recapiti: righe come l'elenco dei servizi, la copia accanto */}
+              <FadeIn delay={100}>
+                <ul className="border-t-[3px] border-black">
+                  {CONTACTS.map((c, i) => (
+                    <li key={c.label} className="border-b-[3px] border-black flex">
+                      <a
+                        href={c.href}
+                        {...(c.external && { target: '_blank', rel: 'noopener noreferrer' })}
+                        className="punk-row group flex-1 min-w-0 flex items-center gap-4 md:gap-6 px-2 md:px-4 py-5 md:py-6"
+                      >
+                        <span className="shrink-0 text-xs md:text-sm font-semibold tabular-nums">[{String(i + 1).padStart(2, '0')}]</span>
+                        <span className="flex-1 min-w-0 flex flex-col md:flex-row md:items-baseline md:justify-between gap-1.5 md:gap-6">
+                          <span className="punk-row-title font-display text-2xl md:text-3xl xl:text-4xl leading-[0.95] uppercase">{c.label}</span>
+                          <span className="text-sm md:text-base font-semibold truncate">{c.value}</span>
+                        </span>
+                        {/* Su mobile niente freccia: lo spazio serve all'email intera */}
+                        <span className="hidden md:inline shrink-0 text-base font-semibold" aria-hidden="true">[{c.external ? '↗' : '→'}]</span>
+                      </a>
+                      {c.copy && (
+                        <button
+                          onClick={() => handleCopy(c.copy, c.label)}
+                          aria-label={`Copia ${c.label === 'Email' ? "l'indirizzo email" : 'il numero'}`}
+                          className="punk-row shrink-0 w-14 md:w-16 flex items-center justify-center border-l-[3px] border-black"
+                        >
+                          {copiedData === c.label ? <Check size={18} /> : <Copy size={18} />}
                         </button>
-                      </dd>
-                    </div>
-                    <div className="py-5 md:py-4 border-b-[3px] border-black">
-                      <dt className={`${label} mb-2`}>Phone</dt>
-                      <dd className="flex flex-wrap items-center gap-3">
-                        <a href={`tel:${PHONE}`} className="text-lg md:text-xl font-semibold hover:underline underline-offset-4 decoration-2">+39 349 586 2375</a>
-                        <button onClick={() => handleCopy(PHONE, 'phone')} aria-label="Copia il numero di telefono" className="w-11 h-11 flex items-center justify-center hover:bg-black hover:text-[#ff2b1c] transition-colors">
-                          {copiedData === 'phone' ? <CopiedBadge /> : <Copy size={18} />}
-                        </button>
-                        <a href="https://wa.me/393495862375" target="_blank" rel="noopener noreferrer" className="rounded-full inline-flex items-center gap-2 px-4 py-3 bg-black text-[#ff2b1c] text-sm font-semibold uppercase tracking-widest border-2 border-black hover:bg-transparent hover:text-black transition-colors">
-                          <MessageCircle size={16} /> WhatsApp
-                        </a>
-                      </dd>
-                    </div>
-                    <div className="py-5 md:py-4 border-b-[3px] border-black">
-                      <dt className={`${label} mb-2`}>Social</dt>
-                      <dd className="flex flex-col gap-2">
-                        <a href="https://instagram.com/matteomasiadesign" target="_blank" rel="noopener noreferrer" className="group inline-flex items-center gap-2 w-fit text-lg md:text-xl font-semibold hover:underline underline-offset-4 decoration-2">
-                          Instagram <ArrowUpRight size={18} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                        </a>
-                        <a href="https://flickr.com/matteomasiaphotography" target="_blank" rel="noopener noreferrer" className="group inline-flex items-center gap-2 w-fit text-lg md:text-xl font-semibold hover:underline underline-offset-4 decoration-2">
-                          Flickr (fotografia) <ArrowUpRight size={18} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                        </a>
-                      </dd>
-                    </div>
-                  </dl>
-                </FadeIn>
-              </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+                <p aria-live="polite" className="sr-only">{copiedData ? 'Copiato negli appunti' : ''}</p>
+              </FadeIn>
 
-              <FadeIn delay={300} className="col-span-12 md:col-span-6 md:col-start-7">
-                <form onSubmit={handleFormSubmit} noValidate className="flex flex-col gap-8">
-                  <h3 className="text-3xl uppercase">Send a message</h3>
+              {/* Form: stesse righe sottili, nessun titolo grande */}
+              <FadeIn delay={200}>
+                <form onSubmit={handleFormSubmit} noValidate className="mt-16 md:mt-20 flex flex-col gap-8">
+                  <span className={label}>// Or write here</span>
 
                   <div aria-live="polite">
                     {formStatus === 'success' && (
                       <div className="border-[3px] border-black p-6 flex items-start gap-4">
-                        <Check size={28} className="shrink-0" />
+                        <Check size={24} className="shrink-0" />
                         <div>
-                          <p className="text-xl font-semibold">Message sent.</p>
+                          <p className="text-lg font-semibold">Message sent.</p>
                           <p className="text-sm font-medium">Ti risponderò a breve.</p>
                         </div>
                       </div>
@@ -435,21 +431,22 @@ export default function Home() {
                       </div>
                       <div>
                         <label htmlFor="f-messaggio" className={label}>Message</label>
-                        <textarea id="f-messaggio" name="messaggio" required disabled={submitting} rows={4} className={`${field} resize-none`}
+                        <textarea id="f-messaggio" name="messaggio" required disabled={submitting} rows={3} className={`${field} resize-none`}
                           value={formData.messaggio} onChange={(e) => setFormData({ ...formData, messaggio: e.target.value })} />
                       </div>
 
                       {formError && <p id="form-error" role="alert" className="text-sm font-semibold bg-black text-[#ff2b1c] px-3 py-2 w-fit">{formError}</p>}
 
+                      {/* Stesso bottone di "Start a project" */}
                       <button
                         type="submit"
                         disabled={submitting}
-                        className="rounded-full self-start inline-flex items-center gap-3 px-10 py-4 bg-black text-[#ff2b1c] border-2 border-black font-semibold uppercase tracking-widest hover:bg-transparent hover:text-black active:scale-95 transition-colors duration-200 disabled:opacity-60"
+                        className="rounded-full hero-btn punk-shadow group self-start flex items-center gap-3 whitespace-nowrap px-7 py-3.5 md:px-8 md:py-4 border-2 border-black bg-transparent text-black font-semibold text-base md:text-lg active:scale-95 transition-colors duration-200 disabled:opacity-60"
                       >
                         {submitting ? (
                           <><span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true" /> Sending…</>
                         ) : (
-                          <>Send request <ArrowUpRight size={18} /></>
+                          <>Send message <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" /></>
                         )}
                       </button>
                     </>
@@ -457,25 +454,34 @@ export default function Home() {
                 </form>
               </FadeIn>
             </div>
+
+            {/* Ora locale: in fondo alla colonna sinistra, dove nei servizi sta l'invito */}
+            <p className={`${label} col-span-12 lg:col-span-4 lg:row-start-2 lg:self-end mt-12 lg:mt-10 flex items-center gap-2`}>
+              Porto Torres · <LocalTime />
+            </p>
           </div>
         </section>
       </main>
 
       {/* --- FOOTER --- */}
-      <footer data-nav-surface="red" className="punk-red text-black border-t-[3px] border-black relative z-10">
+      {/* Continua il rosso dei contatti e sfuma nel nero; la riga finale sta sul nero.
+          Il "+" resta nero finché il fondo è ancora rosso, poi diventa rosso */}
+      <footer className="contact-fade text-[#ff2b1c] relative z-10">
+        {/* Il corvo di fumo sul ramo (tools/crow/), in una striscia: il formato
+            verticale del video è quello quasi quadrato dei telefoni */}
+        <div data-nav-surface="red" className="relative h-[clamp(18rem,30vw,30rem)]">
+          <SmokeVideo name="crow" portraitBelow={2} />
+        </div>
         {/* Margine sotto: la riga finale resta sopra il "+" */}
-        <div className="wrap pt-16 md:pt-24 pb-[calc(7rem+env(safe-area-inset-bottom,0px))]">
-          <a href={`mailto:${EMAIL}`} className="block w-fit font-display text-[clamp(1.1rem,5.1vw,5.25rem)] leading-none whitespace-nowrap hover:text-white transition-colors">
-            {EMAIL}
-          </a>
-          <div className="mt-14 md:mt-20 pt-5 border-t-[3px] border-black grid-12 gap-y-4 text-xs font-semibold uppercase tracking-widest">
+        <div className="wrap pt-6 md:pt-10 pb-[calc(7rem+env(safe-area-inset-bottom,0px))]">
+          <div className="pt-5 border-t border-[#ff2b1c]/40 grid-12 gap-y-4 text-xs font-semibold uppercase tracking-widest">
             <p className="col-span-12 md:col-span-4">© {new Date().getFullYear()} Matteo Masia · P.IVA 03062630904</p>
             <nav aria-label="Footer" className="col-span-12 md:col-span-5 flex flex-wrap gap-x-6 gap-y-2">
-              <Link to="/progetti" className="hover:underline underline-offset-4 decoration-2">Archive</Link>
-              <a href="https://instagram.com/matteomasiadesign" target="_blank" rel="noopener noreferrer" className="hover:underline underline-offset-4 decoration-2">Instagram</a>
-              <a href="https://flickr.com/matteomasiaphotography" target="_blank" rel="noopener noreferrer" className="hover:underline underline-offset-4 decoration-2">Flickr</a>
+              <Link to="/progetti" className="hover:text-white transition-colors">Archive</Link>
+              <a href="https://instagram.com/matteomasiadesign" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Instagram</a>
+              <a href="https://flickr.com/matteomasiaphotography" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Flickr</a>
             </nav>
-            <a {...anchor('home')} className="col-span-12 md:col-span-3 md:justify-self-end hover:underline underline-offset-4 decoration-2">Back to top ↑</a>
+            <a {...anchor('home')} className="col-span-12 md:col-span-3 md:justify-self-end hover:text-white transition-colors">Back to top ↑</a>
           </div>
         </div>
       </footer>

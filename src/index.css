@@ -88,6 +88,17 @@ h1, h2, h3, .font-display {
 }
 .punk-red ::selection { background: #000; color: #ff2b1c; }
 
+/* Footer: il rosso dei contatti (con lo stesso retino) che scende nel nero.
+   Resta rosso pieno dietro il corvo, poi il ramo affonda nel buio.
+   Passa per un rosso scuro invece che in linea retta, così non si sporca di marrone */
+.contact-fade {
+  background-color: #000;
+  background-image:
+    radial-gradient(rgba(0, 0, 0, 0.13) 1px, transparent 1.3px),
+    linear-gradient(to bottom, #ff2b1c 0%, #ff2b1c 28%, #d62219 40%, #8f150e 54%, #3d0806 66%, #120201 74%, #000 80%);
+  background-size: 6px 6px, 100% 100%;
+}
+
 .punk-marquee { animation: ticker-scroll 22s linear infinite; }
 
 @keyframes punk-blink { 50% { opacity: 0; } }
