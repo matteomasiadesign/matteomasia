@@ -1,10 +1,10 @@
-// --- CATTURA DEL VIDEO DEGLI ELEFANTI ---
-// Apre render.html in Edge (con la GPU), prende i fotogrammi uno per uno e li
-// passa a ffmpeg, che ne fa i video in loop per public/video/.
+// --- CATTURA DEI VIDEO DI FUMO (elefanti della hero, uccelli dei servizi, corvo del footer) ---
+// Apre il render.html della scena in Edge (con la GPU), prende i fotogrammi uno
+// per uno e li passa a ffmpeg, che ne fa i video in loop per public/video/.
 //
 // Serve il dev server acceso (npm run dev) e, fuori dal progetto, i due pacchetti:
 //   npm i puppeteer-core ffmpeg-static   (in una cartella qualsiasi)
-//   CAP_MODULES=<quella cartella>/ node tools/elephants/capture.mjs [landscape|portrait] [porta]
+//   CAP_MODULES=<quella cartella>/ node tools/capture.mjs <elephants|birds|crow> [landscape|portrait] [porta]
 // Con PREVIEW=12,600,1100 salva solo quei fotogrammi in PNG, per controllare.
 
 import { createRequire } from 'node:module'
@@ -12,17 +12,18 @@ import { spawn } from 'node:child_process'
 import { mkdirSync, existsSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { LOOP, FPS } from './scene.js'
 
 const require = createRequire(process.env.CAP_MODULES ? join(process.env.CAP_MODULES, 'x.js') : import.meta.url)
 const puppeteer = require('puppeteer-core')
 const ffmpeg = require('ffmpeg-static')
 
-const variant = process.argv[2] || 'landscape'
-const port = process.argv[3] || '5173'
-const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
+const scene = process.argv[2] || 'elephants'
+const variant = process.argv[3] || 'landscape'
+const port = process.argv[4] || '5173'
+const { LOOP, FPS } = await import(`./${scene}/scene.js`)
+const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const out = join(root, 'public', 'video')
-const tmp = process.env.CAP_TMP || join(root, 'tools', 'elephants', '.frames')
+const tmp = process.env.CAP_TMP || join(root, 'tools', scene, '.frames')
 mkdirSync(out, { recursive: true })
 mkdirSync(tmp, { recursive: true })
 
@@ -34,7 +35,7 @@ const browser = await puppeteer.launch({
   args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=d3d11', '--disable-gpu-watchdog'],
 })
 const page = await browser.newPage()
-await page.goto(`http://localhost:${port}/tools/elephants/render.html?v=${variant}`, { waitUntil: 'load' })
+await page.goto(`http://localhost:${port}/tools/${scene}/render.html?v=${variant}`, { waitUntil: 'load' })
 await page.waitForFunction('window.frame')
 const { w, h } = await page.evaluate('window.sceneInfo')
 console.log('GPU:', await page.evaluate(() => {
@@ -76,7 +77,7 @@ await run([...raw, '-c:v', 'ffv1', master], async (stdin) => {
 })
 await browser.close()
 
-const name = join(out, `elephants-${variant}`)
+const name = join(out, `${scene}-${variant}`)
 await run(['-i', master, '-c:v', 'libx264', '-preset', 'veryslow', '-crf', '27', '-pix_fmt', 'yuv420p', '-tune', 'grain', '-movflags', '+faststart', '-an', `${name}.mp4`])
 await run(['-i', master, '-c:v', 'libvpx-vp9', '-crf', '40', '-b:v', '0', '-row-mt', '1', '-pix_fmt', 'yuv420p', '-an', `${name}.webm`])
 await run(['-i', master, '-frames:v', '1', '-q:v', '4', `${name}.jpg`])

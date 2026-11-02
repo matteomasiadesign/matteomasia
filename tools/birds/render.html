@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<title>Uccelli di fumo · render</title>
+<style>
+  html, body { margin: 0; background: #ff2b1c; }
+  canvas { display: block; width: 100vw; height: 100vh; object-fit: contain; mix-blend-mode: multiply; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script type="module">
+// Disegna la scena di scene.js. Con ?play si guarda in tempo reale (anteprima,
+// lenta); tools/capture.mjs invece chiama window.frame(i) un fotogramma alla volta.
+// ?v=landscape | portrait sceglie il formato.
+import { makeScene, VERT, FPS, LOOP } from './scene.js'
+
+const params = new URLSearchParams(location.search)
+const scene = makeScene(params.get('v') || 'landscape')
+const canvas = document.getElementById('c')
+canvas.width = scene.w
+canvas.height = scene.h
+const gl = canvas.getContext('webgl', { antialias: false, preserveDrawingBuffer: true })
+
+const compile = (type, src) => {
+  const s = gl.createShader(type)
+  gl.shaderSource(s, src)
+  gl.compileShader(s)
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s))
+  return s
+}
+const prog = gl.createProgram()
+gl.attachShader(prog, compile(gl.VERTEX_SHADER, VERT))
+gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, scene.frag))
+gl.linkProgram(prog)
+gl.useProgram(prog)
+const buf = gl.createBuffer()
+gl.bindBuffer(gl.ARRAY_BUFFER, buf)
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW)
+const aPos = gl.getAttribLocation(prog, 'aPos')
+gl.enableVertexAttribArray(aPos)
+gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0)
+const u = (n) => gl.getUniformLocation(prog, n)
+gl.viewport(0, 0, scene.w, scene.h)
+gl.uniform2f(u('uRes'), scene.w, scene.h)
+gl.uniform3f(u('uCam'), 0.0, scene.pitch, scene.tanV)
+
+const draw = (t) => {
+  const p = scene.pose(t)
+  gl.uniform1f(u('uTime'), t)
+  gl.uniform4fv(u('uBird'), p.bird)
+  gl.uniform4fv(u('uAnim'), p.anim)
+  gl.uniform4fv(u('uPast'), p.past)
+  gl.uniform1fv(u('uOff'), p.off)
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
+}
+
+// Un fotogramma in scala di grigi (un byte per pixel, dal basso), in base64
+const px = new Uint8Array(scene.w * scene.h * 4)
+const gray = new Uint8Array(scene.w * scene.h)
+window.frame = (i) => {
+  draw(i / FPS)
+  gl.readPixels(0, 0, scene.w, scene.h, gl.RGBA, gl.UNSIGNED_BYTE, px)
+  for (let j = 0; j < gray.length; j++) gray[j] = px[j * 4]
+  let s = ''
+  for (let j = 0; j < gray.length; j += 0x8000) s += String.fromCharCode.apply(null, gray.subarray(j, j + 0x8000))
+  return btoa(s)
+}
+window.sceneInfo = { w: scene.w, h: scene.h, fps: FPS }
+
+if (params.has('t')) draw(Number(params.get('t')))
+else if (params.has('play')) {
+  const t0 = performance.now()
+  const loop = (now) => {
+    draw(((now - t0) / 1000) % LOOP)
+    requestAnimationFrame(loop)
+  }
+  requestAnimationFrame(loop)
+} else draw(0)
+</script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 // deserto in due corsie a profondità fissa: il lontano verso destra, il vicino
 // verso sinistra, su curve morbide che li girano di tre quarti senza mai farli
 // sparire verso il fondo. Non gira nel sito: render.html la disegna fotogramma
-// per fotogramma e capture.mjs ne fa un video in loop (vedi lì come si usa).
+// per fotogramma e tools/capture.mjs ne fa un video in loop (vedi lì come si usa).
 //
 // Il loop è esatto: in LOOP secondi ogni elefante prende il posto del successivo
 // della sua corsia, con lo stesso passo, la stessa proboscide e lo stesso fumo.

@@ -8,4 +8,4 @@ build/
 .DS_Store
 *.log
 .vscode/
-tools/elephants/.frames/
+tools/*/.frames/

@@ -2,10 +2,12 @@ import React, { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { ArrowLeft, ArrowRight, X } from 'lucide-react'
 import SmartImage from './SmartImage.jsx'
+import SmokeVideo from './SmokeVideo.jsx'
 import { addWheelSnap, setScrollLocked } from '../lib/smoothScroll.js'
 
 // --- SERVIZI, STILE "DIGITAL PUNK" ---
-// Fondo rosso come la hero, elenco a righe spesse; un clic su una riga apre
+// Fondo rosso come la hero, attraversato da uccelli di fumo (tools/birds/) come
+// la hero dagli elefanti; elenco a righe spesse; un clic su una riga apre
 // un pannello laterale nero con l'approfondimento del servizio.
 // Dai progetti si arriva con un solo gesto della rotella, come il sipario di Chi sono.
 
@@ -91,8 +93,6 @@ export default function ServicesSection({ services, onCta, onContact }) {
   return (
     // Alta almeno uno schermo: dopo lo scatto si vede la sezione intera, non tagliata
     <section ref={sectionRef} id="services" className="relative z-10 min-h-[100svh] flex flex-col">
-      {/* Punto di aggancio per lo scroll a dito */}
-      <div aria-hidden="true" className="snap-point absolute left-0 top-0 h-px w-px" />
       {/* Fascia nera con la scritta che scorre: lo stacco netto dal nero dei progetti */}
       <div aria-hidden="true" className="bg-black text-[#ff2b1c] overflow-hidden py-3 md:py-4 select-none">
         <div className="punk-marquee flex w-max">
@@ -106,10 +106,12 @@ export default function ServicesSection({ services, onCta, onContact }) {
         </div>
       </div>
 
-      <div data-nav-surface="red" className="punk-red text-black section-y flex-1 flex flex-col justify-center">
+      <div data-nav-surface="red" className="punk-red text-black section-y flex-1 flex flex-col justify-center relative overflow-hidden">
+        {/* Uccelli di fumo che passano dietro, come gli elefanti nella hero */}
+        <SmokeVideo name="birds" />
         {/* Da desktop due colonne: testata e invito a sinistra, con il vuoto in mezzo
             che fa respirare la sezione; l'elenco a destra. Su mobile una sotto l'altra */}
-        <div className="wrap grid-12 lg:grid-rows-[auto_1fr]">
+        <div className="wrap grid-12 lg:grid-rows-[auto_1fr] relative">
           {/* Testata */}
           <div className="col-span-12 lg:col-span-4">
             <span className="block text-xs font-semibold uppercase tracking-widest mb-4">// Skills</span>
