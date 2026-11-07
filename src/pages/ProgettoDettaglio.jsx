@@ -50,7 +50,7 @@ export default function ProgettoDettaglio() {
 
   useEffect(() => {
     if (project) document.title = `${project.title} — Matteo Masia`
-    return () => { document.title = 'Matteo Masia | Visual Designer' }
+    return () => { document.title = 'Matteo Masia — Digital Designer' }
   }, [project])
 
   const media = project && Array.isArray(project.media) && project.media.length
